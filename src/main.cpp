@@ -16,18 +16,26 @@
 #include "Angel.h"
 #include <math.h>
 #include <iostream>
+#define NUM_OF_OBJECTS 8
+#define EARTH_REVOLUTION_ANGULAR_SPEED 0.02
 
 using namespace std;
+
+enum { Xaxis = 0, Yaxis = 1, Zaxis = 2, NumAxes = 3 };
+
+int  Axis = Zaxis;
 
 class AstronomicalObject {
    public:
    	string name;									// name of the object
    	double average_orbit_distance;			// in 10^3 km
-      double equatorial_radius;					// in 10^3 km 
-      double rotation_period;						// in earth days
-      double orbit_period;							// in earth years
-      AstronomicalObject* orbiting_objects;	// for example Earth and other planets orbit Sun.
-      int num_orbiting_objects;
+	double equatorial_radius;					// in 10^3 km 
+	double rotation_period;						// in earth days
+	double orbit_period;							// in earth years
+	AstronomicalObject* orbiting_objects;	// for example Earth and other planets orbit Sun.
+	int num_orbiting_objects;
+	mat4  object_model_view;
+	GLfloat Theta[NumAxes];
 };
 
 typedef Angel::vec4  point4;
@@ -43,7 +51,7 @@ GLuint program;
 
 AstronomicalObject sun;
 // model-view matrices
-mat4 model_views[10];
+mat4 model_views[NUM_OF_OBJECTS];
 // 0 - Sun
 // 1 - Mercury
 // 2 - Venus
@@ -65,56 +73,110 @@ void initAstronomicalObjects(){
    sun.rotation_period = 1.1;
    sun.orbit_period = 0;
    AstronomicalObject* planets = new AstronomicalObject[8];
+   AstronomicalObject* satellites;
    sun.orbiting_objects = planets;
    sun.num_orbiting_objects = 8;
    // mercury
    planets[0].name = "Mercury";
-	planets[0].average_orbit_distance = 3;//57909;
-   planets[0].equatorial_radius = 1; //2.4;
+	planets[0].average_orbit_distance = 4;//57909;
+   planets[0].equatorial_radius = 0.2; //2.4;
    planets[0].rotation_period = 58.6;
    planets[0].orbit_period = 0.2;
+	planets[0].orbiting_objects = NULL;
    // venus
    planets[1].name = "Venus";
-	planets[1].average_orbit_distance = 6; //108209;
-   planets[1].equatorial_radius = 1; //6.1;
+	planets[1].average_orbit_distance = 8; //108209;
+   planets[1].equatorial_radius = 0.4; //6.1;
    planets[1].rotation_period = -243;
    planets[1].orbit_period = 0.6;
+	planets[1].orbiting_objects = NULL;
    // earth
    planets[2].name = "Earth";
-	planets[2].average_orbit_distance = 9; //149598;
-   planets[2].equatorial_radius = 1; //6.4;
+	planets[2].average_orbit_distance = 12; //149598;
+   planets[2].equatorial_radius = 0.4; //6.4;
    planets[2].rotation_period = 1;
    planets[2].orbit_period = 1;
+	planets[2].num_orbiting_objects = 1;
+	satellites = new AstronomicalObject[1];
+   	planets[2].orbiting_objects = satellites;
+	satellites[0].name = "Moon";
+	satellites[0].average_orbit_distance = 2;
+	satellites[0].equatorial_radius = 0.2; //6.4;
+   	satellites[0].rotation_period = 0.1;
+   	satellites[0].orbit_period = 0.1;
    // mars
    planets[3].name = "Mars";
-	planets[3].average_orbit_distance = 12; //227944;
-   planets[3].equatorial_radius = 1; //3.4;
+	planets[3].average_orbit_distance = 16; //227944;
+   planets[3].equatorial_radius = 0.4; //3.4;
    planets[3].rotation_period = 1;
    planets[3].orbit_period = 1.9;
+	planets[3].orbiting_objects = NULL;
    // jupiter
    planets[4].name = "Jupiter";
-	planets[4].average_orbit_distance = 15; //778341;
-   planets[4].equatorial_radius = 1; //69.9;
+	planets[4].average_orbit_distance = 20; //778341;
+   planets[4].equatorial_radius = 0.7; //69.9;
    planets[4].rotation_period = 0.4;
    planets[4].orbit_period = 11.9;
+	planets[4].orbiting_objects = NULL;
    // saturn
    planets[5].name = "Saturn";
-	planets[5].average_orbit_distance = 18; //1426666;
-   planets[5].equatorial_radius = 1; //58.2;
+	planets[5].average_orbit_distance = 24; //1426666;
+   planets[5].equatorial_radius = 0.6; //58.2;
    planets[5].rotation_period = 0.4;
    planets[5].orbit_period = 29.4;
+	planets[5].orbiting_objects = NULL;
    // uranus
    planets[6].name = "Uranus";
-	planets[6].average_orbit_distance = 21;//2870658;
-   planets[6].equatorial_radius = 1; //25.4;
+	planets[6].average_orbit_distance = 28;//2870658;
+   planets[6].equatorial_radius = 0.6; //25.4;
    planets[6].rotation_period = -0.7;
    planets[6].orbit_period = 84;
+	planets[6].orbiting_objects = NULL;	
    // neptune
    planets[7].name = "Neptune";
-	planets[7].average_orbit_distance = 24; //4498396;
-   planets[7].equatorial_radius = 1; //24.6;
+	planets[7].average_orbit_distance = 32; //4498396;
+   planets[7].equatorial_radius = 0.6; //24.6;
    planets[7].rotation_period = 0.7;
    planets[7].orbit_period = 164.8;
+	planets[7].orbiting_objects = NULL;
+}
+
+/* This function handles idle event so that a face rotation 
+ * keeps continuing until 90 degree is completed and
+ * in case of randomized rotations, this function will
+ * execute continuous face rotations.
+ * The skeleton of this function is from the spinCube code
+ */
+void
+idle( void )
+{
+	int i;
+	for(i = 0; i < NUM_OF_OBJECTS; i++) {
+		sun.orbiting_objects[i].Theta[Axis] -= EARTH_REVOLUTION_ANGULAR_SPEED / sun.orbiting_objects[i].orbit_period;
+    		if ( sun.orbiting_objects[i].Theta[Axis] > 360.0 ) {
+        		sun.orbiting_objects[i].Theta[Axis] -= 360.0;
+    		}
+
+    		if ( sun.orbiting_objects[i].Theta[Axis] < -360.0 ) {
+        		sun.orbiting_objects[i].Theta[Axis] += 360.0;
+    		}
+		if(sun.orbiting_objects[i].orbiting_objects) {
+			int j;
+			for(j = 0; j < sun.orbiting_objects[i].num_orbiting_objects; j++) {
+				//AstronomicalObject * satellite = &(sun.orbiting_objects[i].orbiting_objects[j]);
+				sun.orbiting_objects[i].orbiting_objects[j].Theta[Axis] -= EARTH_REVOLUTION_ANGULAR_SPEED / sun.orbiting_objects[i].orbiting_objects[j].orbit_period;
+				//printf("moon is set angular with angular speed %lf\n", sun.orbiting_objects[i].orbiting_objects[j].Theta[Axis]);
+    				if ( sun.orbiting_objects[i].orbiting_objects[j].Theta[Axis] > 360.0 ) {
+        				sun.orbiting_objects[i].orbiting_objects[j].Theta[Axis] -= 360.0;
+    				}
+
+    				if ( sun.orbiting_objects[i].orbiting_objects[j].Theta[Axis] < -360.0 ) {
+        				sun.orbiting_objects[i].orbiting_objects[j].Theta[Axis] += 360.0;
+    				}
+			}
+		}	
+	}
+    	glutPostRedisplay();
 }
 
 //----------------------------------------------------------------------------
@@ -229,10 +291,26 @@ display( void )
 	glUniformMatrix4fv(	glGetUniformLocation( program, "ModelView" ), 1, GL_TRUE, mv );
 	glDrawArrays( GL_TRIANGLES, 0, NumVerticesSphere );
 	for(int i = 0; i < sun.num_orbiting_objects; i++){
-		double t = scaleby * sun.orbiting_objects[i].average_orbit_distance / sun.orbiting_objects[i].equatorial_radius;
+		double t = scaleby * sun.orbiting_objects[i].average_orbit_distance /*/ sun.orbiting_objects[i].equatorial_radius*/;
 		double s = scaleby * sun.orbiting_objects[i].equatorial_radius / sun.equatorial_radius;
-		glUniformMatrix4fv(	glGetUniformLocation( program, "ModelView" ), 1, GL_TRUE, Translate(t, 0, 0) * Scale(s, s, s) );
+		GLfloat ZRotationAngle = sun.orbiting_objects[i].Theta[Zaxis];
+		mat4 planet_model_view = Translate(t*cos(ZRotationAngle), t*sin(ZRotationAngle), 0); 
+		glUniformMatrix4fv(	glGetUniformLocation( program, "ModelView" ), 1, GL_TRUE, planet_model_view * Scale(s, s, s));
 		glDrawArrays( GL_TRIANGLES, 0, NumVerticesSphere );
+		if(sun.orbiting_objects[i].orbiting_objects) {
+			printf("planet %d has satellite(s).\n", i);
+			int j;
+			for(j = 0; j < sun.orbiting_objects[i].num_orbiting_objects; j++) {
+				printf("moon is being created\n");
+				AstronomicalObject satellite = sun.orbiting_objects[i].orbiting_objects[j];
+				double t_s = scaleby * satellite.average_orbit_distance /*/ sun.orbiting_objects[i].equatorial_radius*/;
+				double s_s = scaleby * satellite.equatorial_radius / sun.equatorial_radius;
+				ZRotationAngle = satellite.Theta[Zaxis];
+				mat4 satellite_model_view = Translate(t_s*cos(ZRotationAngle), t_s*sin(ZRotationAngle), 0);
+				glUniformMatrix4fv(	glGetUniformLocation( program, "ModelView" ), 1, GL_TRUE, planet_model_view * satellite_model_view *  Scale(s_s, s_s, s_s));
+				glDrawArrays( GL_TRIANGLES, 0, NumVerticesSphere );
+			}
+		}
 	}
 	glutSwapBuffers();
 }
@@ -306,6 +384,7 @@ main( int argc, char **argv )
 
     init();
 
+	glutIdleFunc( idle );
     glutDisplayFunc( display );
     glutReshapeFunc( reshape );
     glutKeyboardFunc( keyboard );
