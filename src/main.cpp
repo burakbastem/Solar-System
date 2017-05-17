@@ -14,6 +14,7 @@
  */
   
 #include "Angel.h"
+#include "TextureFromJPG.h"
 #include <math.h>
 #include <iostream>
 #define NUM_OF_OBJECTS 8
@@ -36,6 +37,7 @@ class AstronomicalObject {
 	int num_orbiting_objects;
 	mat4  object_model_view;
 	GLfloat Theta[NumAxes];
+  GLuint TexID;
 };
 
 typedef Angel::vec4  point4;
@@ -46,10 +48,13 @@ const int NumTrianglesSphere  = 4096;  // (4 faces)^(NumTimesToSubdivide + 1)
 const int NumVerticesSphere   = 3 * NumTrianglesSphere;
 point4 spherePoints[NumVerticesSphere];
 vec3   sphereNormals[NumVerticesSphere];
-
+vec2   texCoords[NumVerticesSphere];
+static int l = 0;
 GLuint program;
 
 AstronomicalObject sun;
+AstronomicalObject* planets;
+AstronomicalObject* satellites;
 // model-view matrices
 mat4 model_views[NUM_OF_OBJECTS];
 // 0 - Sun
@@ -64,6 +69,29 @@ mat4 model_views[NUM_OF_OBJECTS];
 
 //----------------------------------------------------------------------------
 
+// Loading texture images
+
+void LoadTextureImages()
+{
+  CTexture LoadImages;
+  // Load texture for sun
+  LoadImages.loadTexture2D("../images/texture_sun.jpg", sun.TexID, true);
+  // Load texture for planets
+  LoadImages.loadTexture2D("../images/texture_mercury.jpg", planets[0].TexID, true);
+  LoadImages.loadTexture2D("../images/texture_venus.jpg", planets[1].TexID, true);
+  LoadImages.loadTexture2D("../images/texture_earth.jpg", planets[2].TexID, true);
+  LoadImages.loadTexture2D("../images/texture_mars.jpg", planets[3].TexID, true);
+  LoadImages.loadTexture2D("../images/texture_jupiter.jpg", planets[4].TexID, true);
+  LoadImages.loadTexture2D("../images/texture_saturn.jpg", planets[5].TexID, true);
+  LoadImages.loadTexture2D("../images/texture_uranus.jpg", planets[6].TexID, true);
+  LoadImages.loadTexture2D("../images/texture_neptune.jpg", planets[7].TexID, true);
+  
+  // Load texture for the moon
+  LoadImages.loadTexture2D("../images/texture_moon.jpg", planets[2].orbiting_objects[0].TexID, true);
+  //LoadImages.loadTexture2D("../images/texture_earth.jpg",sun.TexID,true);
+  //LoadImages.loadTexture2D("../images/texture_venus.jpg",sun.TexID,true);
+}
+
 void initAstronomicalObjects(){
 	// real average_orbit_distance and equatorial_radius are not feasible right now.
 	sun = AstronomicalObject();
@@ -72,8 +100,7 @@ void initAstronomicalObjects(){
    sun.equatorial_radius = 1;// 696;
    sun.rotation_period = 1.1;
    sun.orbit_period = 0;
-   AstronomicalObject* planets = new AstronomicalObject[8];
-   AstronomicalObject* satellites;
+   planets = new AstronomicalObject[8];
    sun.orbiting_objects = planets;
    sun.num_orbiting_objects = 8;
    // mercury
@@ -181,17 +208,36 @@ idle( void )
 
 //----------------------------------------------------------------------------
 
-
 int Index_s = 0;
+
+// CalcTextureCoordinates
+vec2
+CalcTextureCoordinates(vec4 point)
+{
+   double s, t;
+   s = atan2(point[0], point[2]) / (2. * M_PI) + 0.5;
+   t = asin(point[1]) / M_PI + .5;
+   if (l!=0)
+   {
+      if(s < 0.75 && texCoords[Index_s-1][0] > 0.75)
+         s += 1.0;
+      else if(s > 0.75 && texCoords[Index_s-1][0] < 0.75)
+         s -= 1.0;
+   }
+   return vec2(s, 1.0-t);
+
+}
+
+
 
 void
 triangle( const point4& a, const point4& b, const point4& c )
 {
     vec3  normal = normalize( cross(b - a, c - b) );
 
-    sphereNormals[Index_s] = normal;  spherePoints[Index_s] = a;  Index_s++;
-    sphereNormals[Index_s] = normal;  spherePoints[Index_s] = b;  Index_s++;
-    sphereNormals[Index_s] = normal;  spherePoints[Index_s] = c;  Index_s++;
+    sphereNormals[Index_s] = normal;  spherePoints[Index_s] = a;  texCoords[Index_s] = CalcTextureCoordinates(a); Index_s++;
+    sphereNormals[Index_s] = normal;  spherePoints[Index_s] = b;  texCoords[Index_s] = CalcTextureCoordinates(a); Index_s++;
+    sphereNormals[Index_s] = normal;  spherePoints[Index_s] = c;  texCoords[Index_s] = CalcTextureCoordinates(a); Index_s++;
 }
 
 point4
@@ -259,10 +305,10 @@ init()
     GLuint buffer;
     glGenBuffers( 1, &buffer );
     glBindBuffer( GL_ARRAY_BUFFER, buffer );
-    glBufferData( GL_ARRAY_BUFFER, sizeof(spherePoints) + sizeof(sphereNormals), NULL, GL_STATIC_DRAW );
+    glBufferData( GL_ARRAY_BUFFER, sizeof(spherePoints) + sizeof(sphereNormals) + sizeof(texCoords), NULL, GL_STATIC_DRAW );
     glBufferSubData( GL_ARRAY_BUFFER, 0, sizeof(spherePoints), spherePoints );
     glBufferSubData( GL_ARRAY_BUFFER, sizeof(spherePoints), sizeof(sphereNormals), sphereNormals );
-
+    glBufferSubData(GL_ARRAY_BUFFER, sizeof(spherePoints) + sizeof(sphereNormals), sizeof(texCoords),texCoords);
     // Load shaders and use the resulting shader program
     program = InitShader( "vshader.glsl", "fshader.glsl" ); 
     glUseProgram( program );
@@ -271,14 +317,20 @@ init()
     GLuint vPosition = glGetAttribLocation( program, "vPosition" );
     glEnableVertexAttribArray( vPosition );
     glVertexAttribPointer( vPosition, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0) );
-	 GLuint vNormal = glGetAttribLocation( program, "vNormal" ); 
+	  GLuint vNormal = glGetAttribLocation( program, "vNormal" ); 
     glEnableVertexAttribArray( vNormal );
     glVertexAttribPointer( vNormal, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(spherePoints)) );
-
+    GLuint vTexCoords = glGetAttribLocation( program, "vTexCoords" );
+    glEnableVertexAttribArray( vTexCoords );
+    glVertexAttribPointer( vTexCoords, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(spherePoints)+sizeof(sphereNormals)) );
     glEnable( GL_DEPTH_TEST );
     glClearColor( 0, 0, 0, 0 );   
     
-    initAstronomicalObjects(); 
+    initAstronomicalObjects();
+
+    // Load Texture images
+    LoadTextureImages();
+        
 }
 
 //----------------------------------------------------------------------------
@@ -289,26 +341,29 @@ display( void )
 	double scaleby = 0.04;
 	mat4 mv = Scale(scaleby, scaleby, scaleby);
 	glUniformMatrix4fv(	glGetUniformLocation( program, "ModelView" ), 1, GL_TRUE, mv );
-	glDrawArrays( GL_TRIANGLES, 0, NumVerticesSphere );
+	glBindTexture(GL_TEXTURE_2D, sun.TexID);
+  glDrawArrays( GL_TRIANGLES, 0, NumVerticesSphere );
 	for(int i = 0; i < sun.num_orbiting_objects; i++){
 		double t = scaleby * sun.orbiting_objects[i].average_orbit_distance /*/ sun.orbiting_objects[i].equatorial_radius*/;
 		double s = scaleby * sun.orbiting_objects[i].equatorial_radius / sun.equatorial_radius;
 		GLfloat ZRotationAngle = sun.orbiting_objects[i].Theta[Zaxis];
 		mat4 planet_model_view = Translate(t*cos(ZRotationAngle), t*sin(ZRotationAngle), 0); 
 		glUniformMatrix4fv(	glGetUniformLocation( program, "ModelView" ), 1, GL_TRUE, planet_model_view * Scale(s, s, s));
+    glBindTexture(GL_TEXTURE_2D, sun.orbiting_objects[i].TexID);
 		glDrawArrays( GL_TRIANGLES, 0, NumVerticesSphere );
 		if(sun.orbiting_objects[i].orbiting_objects) {
-			printf("planet %d has satellite(s).\n", i);
+		//	printf("planet %d has satellite(s).\n", i);
 			int j;
 			for(j = 0; j < sun.orbiting_objects[i].num_orbiting_objects; j++) {
-				printf("moon is being created\n");
+		//		printf("moon is being created\n");
 				AstronomicalObject satellite = sun.orbiting_objects[i].orbiting_objects[j];
 				double t_s = scaleby * satellite.average_orbit_distance /*/ sun.orbiting_objects[i].equatorial_radius*/;
 				double s_s = scaleby * satellite.equatorial_radius / sun.equatorial_radius;
 				ZRotationAngle = satellite.Theta[Zaxis];
 				mat4 satellite_model_view = Translate(t_s*cos(ZRotationAngle), t_s*sin(ZRotationAngle), 0);
 				glUniformMatrix4fv(	glGetUniformLocation( program, "ModelView" ), 1, GL_TRUE, planet_model_view * satellite_model_view *  Scale(s_s, s_s, s_s));
-				glDrawArrays( GL_TRIANGLES, 0, NumVerticesSphere );
+				glBindTexture(GL_TEXTURE_2D, planets[i].orbiting_objects[j].TexID);
+        glDrawArrays( GL_TRIANGLES, 0, NumVerticesSphere );
 			}
 		}
 	}

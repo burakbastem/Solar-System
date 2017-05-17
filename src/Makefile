@@ -1,4 +1,4 @@
-LDLIBS = -lglut -lGLEW -lGL -lGLU
+LDLIBS = -lglut -lGLEW -lGL -lGLU -lfreeimage
 CXXINCS = -Iinclude
 
 SOURCES = $(wildcard *.cpp)
