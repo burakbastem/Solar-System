@@ -253,19 +253,29 @@ void initAstronomicalObjects(){
    planets[4].orbit_period = 11.9;
 
    // before
-   planets[4].num_orbiting_objects = 2;
-	satellites = new AstronomicalObject[2];
+   planets[4].num_orbiting_objects = 4;
+	satellites = new AstronomicalObject[4];
    	planets[4].orbiting_objects = satellites;
 	satellites[0].name = "Ganymede";
 	satellites[0].average_orbit_distance = 1;
 	satellites[0].equatorial_radius = 0.3; //6.4;
    	satellites[0].rotation_period = 0.1;
    	satellites[0].orbit_period = 0.4;
-	satellites[1].name = "Callisto";
-	satellites[1].average_orbit_distance = 4;
-	satellites[1].equatorial_radius = 0.2; //6.4;
+	satellites[1].name = "Europa";
+	satellites[1].average_orbit_distance = 2;
+	satellites[1].equatorial_radius = 0.1; //6.4;
    	satellites[1].rotation_period = 0.1;
    	satellites[1].orbit_period = 0.5;
+	satellites[2].name = "Io";
+	satellites[2].average_orbit_distance = 3;
+	satellites[2].equatorial_radius = 0.15; //6.4;
+   	satellites[2].rotation_period = 0.1;
+   	satellites[2].orbit_period = 0.3;
+	satellites[3].name = "Callisto";
+	satellites[3].average_orbit_distance = 4;
+	satellites[3].equatorial_radius = 0.2; //6.4;
+   	satellites[3].rotation_period = 0.1;
+   	satellites[3].orbit_period = 0.5;
    // after
    // saturn
    planets[5].name = "Saturn";
