@@ -53,6 +53,7 @@ static int l = 0;
 GLuint program;
 GLuint Color;
 GLuint PickingMode;
+GLuint TextureFlag;
 
 AstronomicalObject sun;
 AstronomicalObject* planets;
@@ -76,7 +77,7 @@ void mouse( int button, int state, int x, int y )
     
     if ( state == GLUT_DOWN && button == GLUT_LEFT_BUTTON) {
     	glUniform1i( PickingMode, 1 );
-        
+
 	double red_val = 0.05;
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
@@ -85,7 +86,6 @@ void mouse( int button, int state, int x, int y )
 	glUniform4f( Color, red_val, 0.0, 0.0, 1.0 );
 	mat4 mv = Scale(scaleby, scaleby, scaleby);
 	glUniformMatrix4fv(	glGetUniformLocation( program, "ModelView" ), 1, GL_TRUE, mv );
-	glBindTexture(GL_TEXTURE_2D, sun.TexID);
   	glDrawArrays( GL_TRIANGLES, 0, NumVerticesSphere );
 	for(int i = 0; i < sun.num_orbiting_objects; i++){
 		double t = scaleby * sun.orbiting_objects[i].average_orbit_distance /*/ sun.orbiting_objects[i].equatorial_radius*/;
@@ -95,7 +95,6 @@ void mouse( int button, int state, int x, int y )
 		GLfloat ZRotationAngle = sun.orbiting_objects[i].Theta[Zaxis];
 		mat4 planet_model_view = Translate(t*cos(ZRotationAngle), t*sin(ZRotationAngle), 0); 
 		glUniformMatrix4fv(	glGetUniformLocation( program, "ModelView" ), 1, GL_TRUE, planet_model_view * Scale(s, s, s));
-    glBindTexture(GL_TEXTURE_2D, sun.orbiting_objects[i].TexID);
 		glDrawArrays( GL_TRIANGLES, 0, NumVerticesSphere );
 		if(sun.orbiting_objects[i].orbiting_objects) {
 			int j;
@@ -108,7 +107,6 @@ void mouse( int button, int state, int x, int y )
 				ZRotationAngle = satellite.Theta[Zaxis];
 				mat4 satellite_model_view = Translate(t_s*cos(ZRotationAngle), t_s*sin(ZRotationAngle), 0);
 				glUniformMatrix4fv(	glGetUniformLocation( program, "ModelView" ), 1, GL_TRUE, planet_model_view * satellite_model_view *  Scale(s_s, s_s, s_s));
-				//glBindTexture(GL_TEXTURE_2D, planets[i].orbiting_objects[j].TexID);
         glDrawArrays( GL_TRIANGLES, 0, NumVerticesSphere );
 			}
 		}
@@ -181,6 +179,7 @@ void LoadTextureImages()
   // Load texture for sun
   LoadImages.loadTexture2D("../images/texture_sun.jpg", sun.TexID, true);
   // Load texture for planets
+	
   LoadImages.loadTexture2D("../images/texture_mercury.jpg", planets[0].TexID, true);
   LoadImages.loadTexture2D("../images/texture_venus.jpg", planets[1].TexID, true);
   LoadImages.loadTexture2D("../images/texture_earth.jpg", planets[2].TexID, true);
@@ -199,16 +198,18 @@ void LoadTextureImages()
 
 void initAstronomicalObjects(){
 	// real average_orbit_distance and equatorial_radius are not feasible right now.
-	sun = AstronomicalObject();
+
+
+   sun = AstronomicalObject();
 	sun.name = "Sun";
 	sun.average_orbit_distance = 0;
    sun.equatorial_radius = 1;// 696;
    sun.rotation_period = 1.1;
    sun.orbit_period = 0;
-   AstronomicalObject* planets = new AstronomicalObject[8];
-   AstronomicalObject* satellites;
+   planets = new AstronomicalObject[8];
    sun.orbiting_objects = planets;
    sun.num_orbiting_objects = 8;
+
    // mercury
    planets[0].name = "Mercury";
 	planets[0].average_orbit_distance = 4;//57909;
@@ -252,29 +253,19 @@ void initAstronomicalObjects(){
    planets[4].orbit_period = 11.9;
 
    // before
-   planets[4].num_orbiting_objects = 4;
-	satellites = new AstronomicalObject[4];
+   planets[4].num_orbiting_objects = 2;
+	satellites = new AstronomicalObject[2];
    	planets[4].orbiting_objects = satellites;
 	satellites[0].name = "Ganymede";
 	satellites[0].average_orbit_distance = 1;
 	satellites[0].equatorial_radius = 0.3; //6.4;
    	satellites[0].rotation_period = 0.1;
    	satellites[0].orbit_period = 0.4;
-	satellites[1].name = "Europa";
-	satellites[1].average_orbit_distance = 2;
-	satellites[1].equatorial_radius = 0.1; //6.4;
+	satellites[1].name = "Callisto";
+	satellites[1].average_orbit_distance = 4;
+	satellites[1].equatorial_radius = 0.2; //6.4;
    	satellites[1].rotation_period = 0.1;
    	satellites[1].orbit_period = 0.5;
-	satellites[2].name = "Io";
-	satellites[2].average_orbit_distance = 3;
-	satellites[2].equatorial_radius = 0.15; //6.4;
-   	satellites[2].rotation_period = 0.1;
-   	satellites[2].orbit_period = 0.3;
-	satellites[3].name = "Callisto";
-	satellites[3].average_orbit_distance = 4;
-	satellites[3].equatorial_radius = 0.2; //6.4;
-   	satellites[3].rotation_period = 0.1;
-   	satellites[3].orbit_period = 0.5;
    // after
    // saturn
    planets[5].name = "Saturn";
@@ -330,6 +321,83 @@ void initAstronomicalObjects(){
    	satellites[0].rotation_period = 0.1;
    	satellites[0].orbit_period = 0.2;
 }
+
+/*
+void initAstronomicalObjects(){
+	// real average_orbit_distance and equatorial_radius are not feasible right now.
+	sun = AstronomicalObject();
+	sun.name = "Sun";
+	sun.average_orbit_distance = 0;
+   sun.equatorial_radius = 1;// 696;
+   sun.rotation_period = 1.1;
+   sun.orbit_period = 0;
+   planets = new AstronomicalObject[8];
+   sun.orbiting_objects = planets;
+   sun.num_orbiting_objects = 8;
+   // mercury
+   planets[0].name = "Mercury";
+	planets[0].average_orbit_distance = 4;//57909;
+   planets[0].equatorial_radius = 0.2; //2.4;
+   planets[0].rotation_period = 58.6;
+   planets[0].orbit_period = 0.2;
+	planets[0].orbiting_objects = NULL;
+   // venus
+   planets[1].name = "Venus";
+	planets[1].average_orbit_distance = 8; //108209;
+   planets[1].equatorial_radius = 0.4; //6.1;
+   planets[1].rotation_period = -243;
+   planets[1].orbit_period = 0.6;
+	planets[1].orbiting_objects = NULL;
+   // earth
+   planets[2].name = "Earth";
+	planets[2].average_orbit_distance = 12; //149598;
+   planets[2].equatorial_radius = 0.4; //6.4;
+   planets[2].rotation_period = 1;
+   planets[2].orbit_period = 1;
+	planets[2].num_orbiting_objects = 1;
+	satellites = new AstronomicalObject[1];
+   	planets[2].orbiting_objects = satellites;
+	satellites[0].name = "Moon";
+	satellites[0].average_orbit_distance = 2;
+	satellites[0].equatorial_radius = 0.2; //6.4;
+   	satellites[0].rotation_period = 0.1;
+   	satellites[0].orbit_period = 0.1;
+   // mars
+   planets[3].name = "Mars";
+	planets[3].average_orbit_distance = 16; //227944;
+   planets[3].equatorial_radius = 0.4; //3.4;
+   planets[3].rotation_period = 1;
+   planets[3].orbit_period = 1.9;
+	planets[3].orbiting_objects = NULL;
+   // jupiter
+   planets[4].name = "Jupiter";
+	planets[4].average_orbit_distance = 20; //778341;
+   planets[4].equatorial_radius = 0.7; //69.9;
+   planets[4].rotation_period = 0.4;
+   planets[4].orbit_period = 11.9;
+	planets[4].orbiting_objects = NULL;
+   // saturn
+   planets[5].name = "Saturn";
+	planets[5].average_orbit_distance = 24; //1426666;
+   planets[5].equatorial_radius = 0.6; //58.2;
+   planets[5].rotation_period = 0.4;
+   planets[5].orbit_period = 29.4;
+	planets[5].orbiting_objects = NULL;
+   // uranus
+   planets[6].name = "Uranus";
+	planets[6].average_orbit_distance = 28;//2870658;
+   planets[6].equatorial_radius = 0.6; //25.4;
+   planets[6].rotation_period = -0.7;
+   planets[6].orbit_period = 84;
+	planets[6].orbiting_objects = NULL;	
+   // neptune
+   planets[7].name = "Neptune";
+	planets[7].average_orbit_distance = 32; //4498396;
+   planets[7].equatorial_radius = 0.6; //24.6;
+   planets[7].rotation_period = 0.7;
+   planets[7].orbit_period = 164.8;
+	planets[7].orbiting_objects = NULL;
+}*/
 
 /* This function handles idle event so that a face rotation 
  * keeps continuing until 90 degree is completed and
@@ -489,13 +557,14 @@ init()
     glEnable( GL_DEPTH_TEST );
     glClearColor( 0, 0, 0, 0 );   
 
-    PickingMode = glGetUniformLocation(program, "picking_mode");    
+    PickingMode = glGetUniformLocation(program, "picking_mode");   
+    TextureFlag = glGetUniformLocation(program, "textureFlag");  
     Color = glGetUniformLocation( program, "color" );
 
     initAstronomicalObjects();
 
     // Load Texture images
-    //LoadTextureImages();
+    LoadTextureImages();
         
 }
 
@@ -507,6 +576,7 @@ display( void )
 	double scaleby = 0.04;
 	mat4 mv = Scale(scaleby, scaleby, scaleby);
 	glUniformMatrix4fv(	glGetUniformLocation( program, "ModelView" ), 1, GL_TRUE, mv );
+	glUniform1i( TextureFlag, 1 );
 	glBindTexture(GL_TEXTURE_2D, sun.TexID);
   glDrawArrays( GL_TRIANGLES, 0, NumVerticesSphere );
 	for(int i = 0; i < sun.num_orbiting_objects; i++){
@@ -515,9 +585,11 @@ display( void )
 		GLfloat ZRotationAngle = sun.orbiting_objects[i].Theta[Zaxis];
 		mat4 planet_model_view = Translate(t*cos(ZRotationAngle), t*sin(ZRotationAngle), 0); 
 		glUniformMatrix4fv(	glGetUniformLocation( program, "ModelView" ), 1, GL_TRUE, planet_model_view * Scale(s, s, s));
-    glBindTexture(GL_TEXTURE_2D, sun.orbiting_objects[i].TexID);
+		glUniform1i( TextureFlag, 1 );
+    		glBindTexture(GL_TEXTURE_2D, sun.orbiting_objects[i].TexID);
 		glDrawArrays( GL_TRIANGLES, 0, NumVerticesSphere );
 		if(sun.orbiting_objects[i].orbiting_objects) {
+			glUniform1i( TextureFlag, 0 );
 			int j;
 			for(j = 0; j < sun.orbiting_objects[i].num_orbiting_objects; j++) {
 				AstronomicalObject satellite = sun.orbiting_objects[i].orbiting_objects[j];
@@ -526,8 +598,10 @@ display( void )
 				ZRotationAngle = satellite.Theta[Zaxis];
 				mat4 satellite_model_view = Translate(t_s*cos(ZRotationAngle), t_s*sin(ZRotationAngle), 0);
 				glUniformMatrix4fv(	glGetUniformLocation( program, "ModelView" ), 1, GL_TRUE, planet_model_view * satellite_model_view *  Scale(s_s, s_s, s_s));
-				//glBindTexture(GL_TEXTURE_2D, planets[i].orbiting_objects[j].TexID);
-        glDrawArrays( GL_TRIANGLES, 0, NumVerticesSphere );
+				glDrawArrays( GL_TRIANGLES, 0, NumVerticesSphere );
+				/*if (planets[i].orbiting_objects[j].TexID > 0)
+					glBindTexture(GL_TEXTURE_2D, planets[i].orbiting_objects[j].TexID);
+        glDrawArrays( GL_TRIANGLES, 0, NumVerticesSphere );*/
 			}
 		}
 	}
