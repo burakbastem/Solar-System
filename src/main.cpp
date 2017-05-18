@@ -18,7 +18,7 @@
 #include <math.h>
 #include <iostream>
 #define NUM_OF_OBJECTS 8
-#define EARTH_REVOLUTION_ANGULAR_SPEED 0.02
+#define EARTH_REVOLUTION_ANGULAR_SPEED 0.001
 
 using namespace std;
 
@@ -51,6 +51,8 @@ vec3   sphereNormals[NumVerticesSphere];
 vec2   texCoords[NumVerticesSphere];
 static int l = 0;
 GLuint program;
+GLuint Color;
+GLuint PickingMode;
 
 AstronomicalObject sun;
 AstronomicalObject* planets;
@@ -68,6 +70,108 @@ mat4 model_views[NUM_OF_OBJECTS];
 // 8 - Neptune
 
 //----------------------------------------------------------------------------
+
+void mouse( int button, int state, int x, int y )
+{
+    
+    if ( state == GLUT_DOWN && button == GLUT_LEFT_BUTTON) {
+    	glUniform1i( PickingMode, 1 );
+        
+	double red_val = 0.05;
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
+	// before
+        double scaleby = 0.04;
+	glUniform4f( Color, red_val, 0.0, 0.0, 1.0 );
+	mat4 mv = Scale(scaleby, scaleby, scaleby);
+	glUniformMatrix4fv(	glGetUniformLocation( program, "ModelView" ), 1, GL_TRUE, mv );
+	glBindTexture(GL_TEXTURE_2D, sun.TexID);
+  	glDrawArrays( GL_TRIANGLES, 0, NumVerticesSphere );
+	for(int i = 0; i < sun.num_orbiting_objects; i++){
+		double t = scaleby * sun.orbiting_objects[i].average_orbit_distance /*/ sun.orbiting_objects[i].equatorial_radius*/;
+		double s = scaleby * sun.orbiting_objects[i].equatorial_radius / sun.equatorial_radius;
+		red_val += 0.05;
+		glUniform4f( Color, red_val, 0.0, 0.0, 1.0 );
+		GLfloat ZRotationAngle = sun.orbiting_objects[i].Theta[Zaxis];
+		mat4 planet_model_view = Translate(t*cos(ZRotationAngle), t*sin(ZRotationAngle), 0); 
+		glUniformMatrix4fv(	glGetUniformLocation( program, "ModelView" ), 1, GL_TRUE, planet_model_view * Scale(s, s, s));
+    glBindTexture(GL_TEXTURE_2D, sun.orbiting_objects[i].TexID);
+		glDrawArrays( GL_TRIANGLES, 0, NumVerticesSphere );
+		if(sun.orbiting_objects[i].orbiting_objects) {
+			int j;
+			for(j = 0; j < sun.orbiting_objects[i].num_orbiting_objects; j++) {
+				AstronomicalObject satellite = sun.orbiting_objects[i].orbiting_objects[j];
+				double t_s = scaleby * satellite.average_orbit_distance /*/ sun.orbiting_objects[i].equatorial_radius*/;
+				double s_s = scaleby * satellite.equatorial_radius / sun.equatorial_radius;
+				red_val += 0.05;
+				glUniform4f( Color, red_val, 0.0, 0.0, 1.0 );
+				ZRotationAngle = satellite.Theta[Zaxis];
+				mat4 satellite_model_view = Translate(t_s*cos(ZRotationAngle), t_s*sin(ZRotationAngle), 0);
+				glUniformMatrix4fv(	glGetUniformLocation( program, "ModelView" ), 1, GL_TRUE, planet_model_view * satellite_model_view *  Scale(s_s, s_s, s_s));
+				//glBindTexture(GL_TEXTURE_2D, planets[i].orbiting_objects[j].TexID);
+        glDrawArrays( GL_TRIANGLES, 0, NumVerticesSphere );
+			}
+		}
+	}
+        
+	// after
+	glUniform1i( PickingMode, 0 );
+        glFlush();
+        
+        
+        y = glutGet( GLUT_WINDOW_HEIGHT ) - y;
+        
+        unsigned char pixel[4];
+        glReadPixels(x, y, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pixel);
+        if (pixel[0]==13 && pixel[1]==0 && pixel[2]==0){ std::cout << "Sun"<<std::endl;
+        }
+        else if (pixel[0]==25 && pixel[1]==0 && pixel[2]==0){ std::cout << "Mercury"<<std::endl;
+        }
+	else if (pixel[0]==38 && pixel[1]==0 && pixel[2]==0){ std::cout << "Venus"<<std::endl;
+        }
+	else if (pixel[0]==51 && pixel[1]==0 && pixel[2]==0){ std::cout << "Earth"<<std::endl;
+        }
+	else if (pixel[0]==64 && pixel[1]==0 && pixel[2]==0){ std::cout << "Moon"<<std::endl;
+        }
+	else if (pixel[0]==76 && pixel[1]==0 && pixel[2]==0){ std::cout << "Mars"<<std::endl;
+        }
+	else if (pixel[0]==89 && pixel[1]==0 && pixel[2]==0){ std::cout << "Jupiter"<<std::endl;
+        }
+	else if (pixel[0]==102 && pixel[1]==0 && pixel[2]==0){ std::cout << "Ganymede"<<std::endl;
+        }
+	else if (pixel[0]==115 && pixel[1]==0 && pixel[2]==0){ std::cout << "Europa"<<std::endl;
+        }
+	else if (pixel[0]==128 && pixel[1]==0 && pixel[2]==0){ std::cout << "Io"<<std::endl;
+        }
+	else if (pixel[0]==140 && pixel[1]==0 && pixel[2]==0){ std::cout << "Callisto"<<std::endl;
+        }
+	else if (pixel[0]==153 && pixel[1]==0 && pixel[2]==0){ std::cout << "Saturn"<<std::endl;
+        }
+	else if (pixel[0]==166 && pixel[1]==0 && pixel[2]==0){ std::cout << "Titan"<<std::endl;
+        }
+	else if (pixel[0]==178 && pixel[1]==0 && pixel[2]==0){ std::cout << "Rhea"<<std::endl;
+        }
+	else if (pixel[0]==191 && pixel[1]==0 && pixel[2]==0){ std::cout << "Uranus"<<std::endl;
+        }
+	else if (pixel[0]==204 && pixel[1]==0 && pixel[2]==0){ std::cout << "Titania"<<std::endl;
+        }
+	else if (pixel[0]==217 && pixel[1]==0 && pixel[2]==0){ std::cout << "Oberon"<<std::endl;
+        }
+	else if (pixel[0]==229 && pixel[1]==0 && pixel[2]==0){ std::cout << "Neptune"<<std::endl;
+        }
+	else if (pixel[0]==242 && pixel[1]==0 && pixel[2]==0){ std::cout << "Triton"<<std::endl;
+        }
+        else {std::cout << "None"<<std::endl;}
+        
+        std::cout << "R: " << (int)pixel[0] << std::endl;
+        std::cout << "G: " << (int)pixel[1] << std::endl;
+        std::cout << "B: " << (int)pixel[2] << std::endl;
+        std::cout << std::endl;
+        
+        glutPostRedisplay(); //needed to avoid display of the content of the back buffer when some portion of the window is obscured
+     
+    }
+}
 
 // Loading texture images
 
@@ -92,6 +196,7 @@ void LoadTextureImages()
   //LoadImages.loadTexture2D("../images/texture_venus.jpg",sun.TexID,true);
 }
 
+
 void initAstronomicalObjects(){
 	// real average_orbit_distance and equatorial_radius are not feasible right now.
 	sun = AstronomicalObject();
@@ -100,7 +205,8 @@ void initAstronomicalObjects(){
    sun.equatorial_radius = 1;// 696;
    sun.rotation_period = 1.1;
    sun.orbit_period = 0;
-   planets = new AstronomicalObject[8];
+   AstronomicalObject* planets = new AstronomicalObject[8];
+   AstronomicalObject* satellites;
    sun.orbiting_objects = planets;
    sun.num_orbiting_objects = 8;
    // mercury
@@ -128,7 +234,7 @@ void initAstronomicalObjects(){
    	planets[2].orbiting_objects = satellites;
 	satellites[0].name = "Moon";
 	satellites[0].average_orbit_distance = 2;
-	satellites[0].equatorial_radius = 0.2; //6.4;
+	satellites[0].equatorial_radius = 0.1; //6.4;
    	satellites[0].rotation_period = 0.1;
    	satellites[0].orbit_period = 0.1;
    // mars
@@ -144,28 +250,85 @@ void initAstronomicalObjects(){
    planets[4].equatorial_radius = 0.7; //69.9;
    planets[4].rotation_period = 0.4;
    planets[4].orbit_period = 11.9;
-	planets[4].orbiting_objects = NULL;
+
+   // before
+   planets[4].num_orbiting_objects = 4;
+	satellites = new AstronomicalObject[4];
+   	planets[4].orbiting_objects = satellites;
+	satellites[0].name = "Ganymede";
+	satellites[0].average_orbit_distance = 1;
+	satellites[0].equatorial_radius = 0.3; //6.4;
+   	satellites[0].rotation_period = 0.1;
+   	satellites[0].orbit_period = 0.4;
+	satellites[1].name = "Europa";
+	satellites[1].average_orbit_distance = 2;
+	satellites[1].equatorial_radius = 0.1; //6.4;
+   	satellites[1].rotation_period = 0.1;
+   	satellites[1].orbit_period = 0.5;
+	satellites[2].name = "Io";
+	satellites[2].average_orbit_distance = 3;
+	satellites[2].equatorial_radius = 0.15; //6.4;
+   	satellites[2].rotation_period = 0.1;
+   	satellites[2].orbit_period = 0.3;
+	satellites[3].name = "Callisto";
+	satellites[3].average_orbit_distance = 4;
+	satellites[3].equatorial_radius = 0.2; //6.4;
+   	satellites[3].rotation_period = 0.1;
+   	satellites[3].orbit_period = 0.5;
+   // after
    // saturn
    planets[5].name = "Saturn";
 	planets[5].average_orbit_distance = 24; //1426666;
    planets[5].equatorial_radius = 0.6; //58.2;
    planets[5].rotation_period = 0.4;
    planets[5].orbit_period = 29.4;
-	planets[5].orbiting_objects = NULL;
+   planets[5].num_orbiting_objects = 2;
+   satellites = new AstronomicalObject[2];
+   	planets[5].orbiting_objects = satellites;
+	satellites[0].name = "Titan";
+	satellites[0].average_orbit_distance = 1;
+	satellites[0].equatorial_radius = 0.25; //6.4;
+   	satellites[0].rotation_period = 0.1;
+   	satellites[0].orbit_period = 0.3;
+	satellites[1].name = "Rhea";
+	satellites[1].average_orbit_distance = 2;
+	satellites[1].equatorial_radius = 0.1; //6.4;
+   	satellites[1].rotation_period = 0.1;
+   	satellites[1].orbit_period = 0.5;
+
    // uranus
    planets[6].name = "Uranus";
 	planets[6].average_orbit_distance = 28;//2870658;
    planets[6].equatorial_radius = 0.6; //25.4;
    planets[6].rotation_period = -0.7;
    planets[6].orbit_period = 84;
-	planets[6].orbiting_objects = NULL;	
+   planets[6].num_orbiting_objects = 2;
+   satellites = new AstronomicalObject[2];
+   	planets[6].orbiting_objects = satellites;
+	satellites[0].name = "Titania";
+	satellites[0].average_orbit_distance = 1;
+	satellites[0].equatorial_radius = 0.1; //6.4;
+   	satellites[0].rotation_period = 0.1;
+   	satellites[0].orbit_period = 0.6;
+	satellites[1].name = "Oberon";
+	satellites[1].average_orbit_distance = 2;
+	satellites[1].equatorial_radius = 0.1; //6.4;
+   	satellites[1].rotation_period = 0.1;
+   	satellites[1].orbit_period = 0.7;	
    // neptune
    planets[7].name = "Neptune";
 	planets[7].average_orbit_distance = 32; //4498396;
    planets[7].equatorial_radius = 0.6; //24.6;
    planets[7].rotation_period = 0.7;
    planets[7].orbit_period = 164.8;
-	planets[7].orbiting_objects = NULL;
+   planets[7].num_orbiting_objects = 1;
+	satellites = new AstronomicalObject[1];
+   	planets[7].orbiting_objects = satellites;
+	satellites[0].name = "Triton";
+	satellites[0].average_orbit_distance = 1;
+	satellites[0].equatorial_radius = 0.1; //6.4;
+   	satellites[0].rotation_period = 0.1;
+   	satellites[0].orbit_period = 0.2;
 }
 
 /* This function handles idle event so that a face rotation 
@@ -325,11 +488,14 @@ init()
     glVertexAttribPointer( vTexCoords, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(spherePoints)+sizeof(sphereNormals)) );
     glEnable( GL_DEPTH_TEST );
     glClearColor( 0, 0, 0, 0 );   
-    
+
+    PickingMode = glGetUniformLocation(program, "picking_mode");    
+    Color = glGetUniformLocation( program, "color" );
+
     initAstronomicalObjects();
 
     // Load Texture images
-    LoadTextureImages();
+    //LoadTextureImages();
         
 }
 
@@ -352,17 +518,15 @@ display( void )
     glBindTexture(GL_TEXTURE_2D, sun.orbiting_objects[i].TexID);
 		glDrawArrays( GL_TRIANGLES, 0, NumVerticesSphere );
 		if(sun.orbiting_objects[i].orbiting_objects) {
-		//	printf("planet %d has satellite(s).\n", i);
 			int j;
 			for(j = 0; j < sun.orbiting_objects[i].num_orbiting_objects; j++) {
-		//		printf("moon is being created\n");
 				AstronomicalObject satellite = sun.orbiting_objects[i].orbiting_objects[j];
 				double t_s = scaleby * satellite.average_orbit_distance /*/ sun.orbiting_objects[i].equatorial_radius*/;
 				double s_s = scaleby * satellite.equatorial_radius / sun.equatorial_radius;
 				ZRotationAngle = satellite.Theta[Zaxis];
 				mat4 satellite_model_view = Translate(t_s*cos(ZRotationAngle), t_s*sin(ZRotationAngle), 0);
 				glUniformMatrix4fv(	glGetUniformLocation( program, "ModelView" ), 1, GL_TRUE, planet_model_view * satellite_model_view *  Scale(s_s, s_s, s_s));
-				glBindTexture(GL_TEXTURE_2D, planets[i].orbiting_objects[j].TexID);
+				//glBindTexture(GL_TEXTURE_2D, planets[i].orbiting_objects[j].TexID);
         glDrawArrays( GL_TRIANGLES, 0, NumVerticesSphere );
 			}
 		}
@@ -444,6 +608,7 @@ main( int argc, char **argv )
     glutReshapeFunc( reshape );
     glutKeyboardFunc( keyboard );
     glutSpecialFunc( specialKeyboard );
+    glutMouseFunc( mouse );
     glutMainLoop();
     
     return 0;
