@@ -21,18 +21,18 @@ CTexture::~CTexture()
 bool CTexture::FileExist(char * mFileName)
 {
 	FILE *File = NULL;									// File Handle
-	printf("here1\n");
+	//printf("here1\n");
 	if (!mFileName)										// Make Sure A Filename Was Given
 	{	return false; 	}								// No file specified
-	printf("here2\n");
+	//printf("here2\n");
 	//open the file to see if it does exist
 	File = fopen(mFileName,"r");
-	printf("here3\n");							// Check To See If The File Exists
+	//printf("here3\n");							// Check To See If The File Exists
 	if (!File)											// If the file does not exist then exit
 	{	return false;	}								
-	printf("here4\n");
+	//printf("here4\n");
 	fclose(File);										// Close The Handle
-	printf("here5\n");
+	//printf("here5\n");
 	//return success = file exists
 	return true;
 }
