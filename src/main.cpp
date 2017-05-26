@@ -18,7 +18,7 @@
 #include <math.h>
 #include <iostream>
 #define NUM_OF_OBJECTS 8
-#define EARTH_REVOLUTION_ANGULAR_SPEED 1
+#define EARTH_REVOLUTION_ANGULAR_SPEED 0.05
 
 using namespace std;
 
@@ -546,62 +546,59 @@ void specialKeyboard(int key, int x, int y) {
 void mouse(int button, int state, int x, int y) {
 
 	if (state == GLUT_DOWN && button == GLUT_LEFT_BUTTON) {
+
+		// begin
 		glUniform1i(PickingMode, 1);
 		double red_val = 0.05;
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		// before
-		double scaleby = 0.04;
 		glUniform4f(Color, red_val, 0.0, 0.0, 1.0);
-		mat4 mv = Scale(scaleby, scaleby, scaleby);
-		glUniformMatrix4fv(glGetUniformLocation(program, "ModelView"), 1,
-				GL_TRUE, mv);
+		mat4 mv = view;
+		glUniformMatrix4fv(glGetUniformLocation(program, "ModelView"), 1, GL_TRUE,	mv);
 		glDrawArrays(GL_TRIANGLES, 0, NumVerticesSphere);
+		// end
+
 		for (int i = 0; i < sun.num_orbiting_objects; i++) {
-			double t =
-					scaleby
-							* sun.orbiting_objects[i].average_orbit_distance /*/ sun.orbiting_objects[i].equatorial_radius*/;
-			double s = scaleby * sun.orbiting_objects[i].equatorial_radius
-					/ sun.equatorial_radius;
+
+			// before
+			double t = sun.orbiting_objects[i].average_orbit_distance;
+			double s = sun.orbiting_objects[i].equatorial_radius / sun.equatorial_radius;
 			red_val += 0.05;
 			glUniform4f(Color, red_val, 0.0, 0.0, 1.0);
-			GLfloat ZRotationAngle = sun.orbiting_objects[i].Theta[Zaxis];
-			mat4 planet_model_view = Translate(t * cos(ZRotationAngle),
-					t * sin(ZRotationAngle), 0);
-			glUniformMatrix4fv(glGetUniformLocation(program, "ModelView"), 1,
-					GL_TRUE, planet_model_view * Scale(s, s, s));
+			GLfloat YRotationAngle = sun.orbiting_objects[i].Theta[Yaxis];
+			mat4 planet_model = RotateY(YRotationAngle) * Translate(t, 0, 0);
+			glUniformMatrix4fv(glGetUniformLocation(program, "ModelView"), 1, GL_TRUE, view * planet_model * Scale(s, s, s));
 			glDrawArrays(GL_TRIANGLES, 0, NumVerticesSphere);
+			// after
+
+
 			if (sun.orbiting_objects[i].orbiting_objects) {
 				int j;
 				for (j = 0; j < sun.orbiting_objects[i].num_orbiting_objects;
 						j++) {
-					AstronomicalObject satellite =
-							sun.orbiting_objects[i].orbiting_objects[j];
-					double t_s =
-							scaleby
-									* satellite.average_orbit_distance /*/ sun.orbiting_objects[i].equatorial_radius*/;
-					double s_s = scaleby * satellite.equatorial_radius
-							/ sun.equatorial_radius;
+					// begin
+					AstronomicalObject satellite = sun.orbiting_objects[i].orbiting_objects[j];
+					// orbit distance of satallite from the planet that satallite rotates around
+					double t_s = satellite.average_orbit_distance;
+					// scale value respect to planet that stallite rotates around
+					double s_s = satellite.equatorial_radius / sun.orbiting_objects[i].equatorial_radius;
 					red_val += 0.05;
 					glUniform4f(Color, red_val, 0.0, 0.0, 1.0);
-					ZRotationAngle = satellite.Theta[Zaxis];
-					mat4 satellite_model_view = Translate(
-							t_s * cos(ZRotationAngle),
-							t_s * sin(ZRotationAngle), 0);
-					glUniformMatrix4fv(
-							glGetUniformLocation(program, "ModelView"), 1,
-							GL_TRUE,
-							planet_model_view * satellite_model_view
-									* Scale(s_s, s_s, s_s));
+					YRotationAngle = satellite.Theta[Yaxis];
+					mat4 satellite_model = planet_model * RotateY(YRotationAngle) * Translate(t_s, 0, 0);
+					//mat4 satellite_model = Translate(t_s, 0, 0) * Scale(s_s, s_s, s_s) * planet_model;
+					glUniformMatrix4fv(glGetUniformLocation(program, "ModelView"), 1, GL_TRUE, 
+						view * satellite_model * Scale(s_s, s_s, s_s));
 					glDrawArrays(GL_TRIANGLES, 0, NumVerticesSphere);
+					// end
 				}
 			}
 		}
 		// after
-		glUniform1i(PickingMode, 0);
-		glFlush();
 		y = glutGet(GLUT_WINDOW_HEIGHT) - y;
 		unsigned char pixel[4];
 		glReadPixels(x, y, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pixel);
+		glUniform1i(PickingMode, 0);
+		glFlush();
 		if (pixel[0] == 13 && pixel[1] == 0 && pixel[2] == 0) {
 			std::cout << "Sun" << std::endl;
 		} else if (pixel[0] == 25 && pixel[1] == 0 && pixel[2] == 0) {
