@@ -383,12 +383,13 @@ void display(void) {
 		double t = sun.orbiting_objects[i].average_orbit_distance;
 		double s = sun.orbiting_objects[i].equatorial_radius / sun.equatorial_radius;
 		GLfloat YRotationAngle = sun.orbiting_objects[i].Theta[Yaxis];
-		mat4 planet_model = RotateY(YRotationAngle) * Translate(t, 0, 0) * Scale(s, s, s);
-		glUniformMatrix4fv(glGetUniformLocation(program, "ModelView"), 1, GL_TRUE, view * planet_model);
+		//mat4 planet_model = RotateY(YRotationAngle) * Translate(t, 0, 0) * Scale(s, s, s);
+		mat4 planet_model = RotateY(YRotationAngle) * Translate(t, 0, 0);
+		glUniformMatrix4fv(glGetUniformLocation(program, "ModelView"), 1, GL_TRUE, view * planet_model * Scale(s, s, s));
 		glUniform1i(TextureFlag, 1);
 		glBindTexture(GL_TEXTURE_2D, sun.orbiting_objects[i].TexID);
 		glDrawArrays(GL_TRIANGLES, 0, NumVerticesSphere);
-		/*if (sun.orbiting_objects[i].orbiting_objects) {
+		if (sun.orbiting_objects[i].orbiting_objects) {
 			glUniform1i(TextureFlag, 0);
 			for (int j = 0; j < sun.orbiting_objects[i].num_orbiting_objects; j++) {
 				AstronomicalObject satellite = sun.orbiting_objects[i].orbiting_objects[j];
@@ -397,15 +398,16 @@ void display(void) {
 				// scale value respect to planet that stallite rotates around
 				double s_s = satellite.equatorial_radius / sun.orbiting_objects[i].equatorial_radius;
 				YRotationAngle = satellite.Theta[Yaxis];
-				mat4 satellite_model = Translate(t_s, 0, 0) * Scale(s_s, s_s, s_s) * planet_model;
+				mat4 satellite_model = planet_model * RotateY(YRotationAngle) * Translate(t_s, 0, 0);
+				//mat4 satellite_model = Translate(t_s, 0, 0) * Scale(s_s, s_s, s_s) * planet_model;
 				glUniformMatrix4fv(glGetUniformLocation(program, "ModelView"), 1, GL_TRUE, 
-						view * satellite_model);
+						view * satellite_model * Scale(s_s, s_s, s_s));
 				glDrawArrays(GL_TRIANGLES, 0, NumVerticesSphere);
 				//if (planets[i].orbiting_objects[j].TexID > 0)
 				//glBindTexture(GL_TEXTURE_2D, planets[i].orbiting_objects[j].TexID);
 				//glDrawArrays( GL_TRIANGLES, 0, NumVerticesSphere );
 			}
-		}*/
+		}
 	}
 	glutSwapBuffers();
 }
