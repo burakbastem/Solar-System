@@ -68,6 +68,30 @@ AstronomicalObject sun;
 AstronomicalObject* planets;
 AstronomicalObject* satellites;
 
+// before
+
+GLuint AmbientProduct, DiffuseProduct, SpecularProduct, LightPosition; 
+ 
+GLfloat Shininess;
+
+GLuint ModelView;
+GLuint Shading_mode;
+
+// for the first point light source
+color4 ambient_product; // k_a * L_a
+color4 diffuse_product; // k_d * L_d 
+color4 specular_product; // k_s * L_s
+
+
+point4 light_position( 0.0, 0.0, 0.0, 1.0 );
+color4 light_ambient( 0.2, 0.2, 0.2, 1.0 ); // L_a
+color4 light_diffuse( 1.0, 1.0, 1.0, 1.0 ); // L_d
+color4 light_specular( 1.0, 1.0, 1.0, 1.0 ); // L_s
+
+color4 material_ambient( 1.0, 0.0, 1.0, 1.0 ); // k_a
+color4 material_diffuse( 1.0, 0.8, 0.0, 1.0 ); // k_d
+color4 material_specular( 1.0, 0.8, 0.0, 1.0 ); // k_s
+
 //----------------------------------------------------------------------------
 
 // Loading texture images
@@ -88,6 +112,14 @@ void LoadTextureImages() {
 	// Load texture for the moon
 	LoadImages.loadTexture2D("../images/texture_moon.jpg",
 			planets[2].orbiting_objects[0].TexID, true);
+	LoadImages.loadTexture2D("../images/texture_ganymede.jpg",
+			planets[4].orbiting_objects[0].TexID, true);
+	LoadImages.loadTexture2D("../images/texture_europa.jpg",
+			planets[4].orbiting_objects[1].TexID, true);
+	LoadImages.loadTexture2D("../images/texture_io.jpg",
+			planets[4].orbiting_objects[2].TexID, true);
+	LoadImages.loadTexture2D("../images/texture_callisto.jpg",
+			planets[4].orbiting_objects[3].TexID, true);
 	//LoadImages.loadTexture2D("../images/texture_earth.jpg",sun.TexID,true);
 	//LoadImages.loadTexture2D("../images/texture_venus.jpg",sun.TexID,true);
 }
@@ -266,8 +298,9 @@ void initAstronomicalObjects() {
 	planets[5].rotation_period = 0.04;
 	planets[5].orbit_period = 29.4;
 	planets[5].num_orbiting_objects = 2;
+	planets[5].orbiting_objects = NULL;
 	planets[5].TiltingAngle = RotateY(28) * RotateZ(7);
-	satellites = new AstronomicalObject[2];
+	/*satellites = new AstronomicalObject[2];
 	planets[5].orbiting_objects = satellites;
 	satellites[0].name = "Titan";
 	satellites[0].average_orbit_distance = 1;
@@ -281,7 +314,7 @@ void initAstronomicalObjects() {
 	satellites[1].rotation_period = 0.01;
 	satellites[1].orbit_period = 0.5;
 	satellites[1].TiltingAngle = RotateY(8) * RotateZ(17);
-
+        */
 	// uranus
 	planets[6].name = "Uranus";
 	planets[6].average_orbit_distance = 28; //2870658;
@@ -290,7 +323,8 @@ void initAstronomicalObjects() {
 	planets[6].orbit_period = 84;
 	planets[6].num_orbiting_objects = 2;
 	planets[6].TiltingAngle = RotateY(8) * RotateZ(27);
-	satellites = new AstronomicalObject[2];
+	planets[6].orbiting_objects = NULL;
+	/*satellites = new AstronomicalObject[2];
 	planets[6].orbiting_objects = satellites;
 	satellites[0].name = "Titania";
 	satellites[0].average_orbit_distance = 1;
@@ -303,7 +337,8 @@ void initAstronomicalObjects() {
 	satellites[1].equatorial_radius = 0.1; //6.4;
 	satellites[1].rotation_period = 0.01;
 	satellites[1].orbit_period = 0.7;
-	satellites[1].TiltingAngle = RotateY(8) * RotateZ(7);
+	satellites[1].TiltingAngle = RotateY(8) * RotateZ(7); */
+	
 	// neptune
 	planets[7].name = "Neptune";
 	planets[7].average_orbit_distance = 32; //4498396;
@@ -312,14 +347,15 @@ void initAstronomicalObjects() {
 	planets[7].orbit_period = 164.8;
 	planets[7].num_orbiting_objects = 1;
 	planets[7].TiltingAngle = RotateY(8) * RotateZ(7);
-	satellites = new AstronomicalObject[1];
+	planets[7].orbiting_objects = NULL;
+	/*satellites = new AstronomicalObject[1];
 	planets[7].orbiting_objects = satellites;
 	satellites[0].name = "Triton";
 	satellites[0].average_orbit_distance = 1;
 	satellites[0].equatorial_radius = 0.1; //6.4;
 	satellites[0].rotation_period = 0.01;
 	satellites[0].orbit_period = 0.2;
-	satellites[0].TiltingAngle = RotateY(8) * RotateZ(7);
+	satellites[0].TiltingAngle = RotateY(8) * RotateZ(7); */
 }
 
 //----------------------------------------------------------------------------
@@ -381,6 +417,31 @@ void init() {
 	TextureFlag = glGetUniformLocation(program, "textureFlag");
 	Color = glGetUniformLocation(program, "color");
 
+	// before
+	float  material_shininess = 150.0;
+
+    	ambient_product = light_ambient * material_ambient; // k_a * L_a
+    	diffuse_product = light_diffuse * material_diffuse; // k_d * L_d
+    	specular_product = light_specular * material_specular; // k_s * L_s
+
+    	AmbientProduct = glGetUniformLocation(program, "AmbientProduct");
+    	DiffuseProduct = glGetUniformLocation(program, "DiffuseProduct");
+    	SpecularProduct = glGetUniformLocation(program, "SpecularProduct");
+    	LightPosition = glGetUniformLocation(program, "LightPosition");
+
+	// first point light source is activated by default
+    	glUniform4fv( AmbientProduct, 1, ambient_product );
+    	glUniform4fv( DiffuseProduct, 1, diffuse_product );
+    	glUniform4fv( SpecularProduct, 1, specular_product );
+    	glUniform4fv( LightPosition, 1, light_position );
+
+    	Shininess = glGetUniformLocation(program, "Shininess");
+    	glUniform1f( Shininess, material_shininess );
+
+    	Shading_mode = glGetUniformLocation(program, "Shading");
+	glUniform1i(Shading_mode , 1 );
+	// after
+
 	initAstronomicalObjects();
 	
 	computeView();
@@ -399,7 +460,9 @@ void display(void) {
 	glUniformMatrix4fv(glGetUniformLocation(program, "ModelView"), 1, GL_TRUE,	mv);
 	glUniform1i(TextureFlag, 1);
 	glBindTexture(GL_TEXTURE_2D, sun.TexID);
+	glUniform1i(Shading_mode , 0 );
 	glDrawArrays(GL_TRIANGLES, 0, NumVerticesSphere);
+	glUniform1i(Shading_mode , 1 );
 	// planets
 	for (int i = 0; i < sun.num_orbiting_objects; i++) {
 		double t = sun.orbiting_objects[i].average_orbit_distance;
@@ -412,7 +475,7 @@ void display(void) {
 		glBindTexture(GL_TEXTURE_2D, sun.orbiting_objects[i].TexID);
 		glDrawArrays(GL_TRIANGLES, 0, NumVerticesSphere);
 		if (sun.orbiting_objects[i].orbiting_objects) {
-			glUniform1i(TextureFlag, 0);
+		  glUniform1i(TextureFlag, 1);
 			for (int j = 0; j < sun.orbiting_objects[i].num_orbiting_objects; j++) {
 				AstronomicalObject satellite = sun.orbiting_objects[i].orbiting_objects[j];
 				// orbit distance of satallite from the planet that satallite rotates around
@@ -425,10 +488,10 @@ void display(void) {
 				//mat4 satellite_model = Translate(t_s, 0, 0) * Scale(s_s, s_s, s_s) * planet_model;
 				glUniformMatrix4fv(glGetUniformLocation(program, "ModelView"), 1, GL_TRUE, 
 						view * satellite_model * Scale(s_s, s_s, s_s));
-				glDrawArrays(GL_TRIANGLES, 0, NumVerticesSphere);
-				//if (planets[i].orbiting_objects[j].TexID > 0)
-				//glBindTexture(GL_TEXTURE_2D, planets[i].orbiting_objects[j].TexID);
-				//glDrawArrays( GL_TRIANGLES, 0, NumVerticesSphere );
+				//glDrawArrays(GL_TRIANGLES, 0, NumVerticesSphere);
+				if (planets[i].orbiting_objects[j].TexID > 0)
+				  {glBindTexture(GL_TEXTURE_2D, planets[i].orbiting_objects[j].TexID);}
+				   glDrawArrays( GL_TRIANGLES, 0, NumVerticesSphere );
 			}
 		}
 	}
