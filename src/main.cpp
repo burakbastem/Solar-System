@@ -18,7 +18,7 @@
 #include <math.h>
 #include <iostream>
 #define NUM_OF_OBJECTS 8
-#define EARTH_REVOLUTION_ANGULAR_SPEED 0.05
+double EARTH_REVOLUTION_ANGULAR_SPEED = 0.05;
 
 using namespace std;
 
@@ -43,7 +43,9 @@ public:
 	AstronomicalObject* orbiting_objects;// for example Earth and other planets orbit Sun.
 	int num_orbiting_objects;
 	mat4 object_model_view;
-	GLfloat Theta[NumAxes];
+	mat4 TiltingAngle;
+	GLfloat RevolutionTheta[NumAxes];
+	GLfloat RotationTheta[NumAxes];
 	GLuint TexID;
 };
 
@@ -175,6 +177,7 @@ void initAstronomicalObjects() {
 	sun.equatorial_radius = 1;	// 696;
 	sun.rotation_period = 1.1;
 	sun.orbit_period = 0;
+	sun.TiltingAngle = RotateY(10) * RotateZ(10);
 	planets = new AstronomicalObject[8];
 	sun.orbiting_objects = planets;
 	sun.num_orbiting_objects = 8;
@@ -183,43 +186,49 @@ void initAstronomicalObjects() {
 	planets[0].name = "Mercury";
 	planets[0].average_orbit_distance = 4;	//57909;
 	planets[0].equatorial_radius = 0.2; //2.4;
-	planets[0].rotation_period = 58.6;
+	planets[0].rotation_period = 0.02;
 	planets[0].orbit_period = 0.2;
 	planets[0].orbiting_objects = NULL;
+	planets[0].TiltingAngle = RotateY(5) * RotateZ(10);
 	// venus
 	planets[1].name = "Venus";
 	planets[1].average_orbit_distance = 8; //108209;
 	planets[1].equatorial_radius = 0.4; //6.1;
-	planets[1].rotation_period = -243;
+	planets[1].rotation_period = 0.2;
 	planets[1].orbit_period = 0.6;
 	planets[1].orbiting_objects = NULL;
+	planets[1].TiltingAngle = RotateY(5) * RotateZ(8);
 	// earth
 	planets[2].name = "Earth";
 	planets[2].average_orbit_distance = 12; //149598;
 	planets[2].equatorial_radius = 0.4; //6.4;
-	planets[2].rotation_period = 1;
+	planets[2].rotation_period = 0.003;
 	planets[2].orbit_period = 1;
 	planets[2].num_orbiting_objects = 1;
+	planets[2].TiltingAngle = RotateY(8) * RotateZ(7);
 	satellites = new AstronomicalObject[1];
 	planets[2].orbiting_objects = satellites;
 	satellites[0].name = "Moon";
 	satellites[0].average_orbit_distance = 2;
 	satellites[0].equatorial_radius = 0.1; //6.4;
-	satellites[0].rotation_period = 0.1;
+	satellites[0].rotation_period = 0.01;
 	satellites[0].orbit_period = 0.1;
+	satellites[2].TiltingAngle = RotateY(20) * RotateZ(7);
 	// mars
 	planets[3].name = "Mars";
 	planets[3].average_orbit_distance = 16; //227944;
 	planets[3].equatorial_radius = 0.4; //3.4;
-	planets[3].rotation_period = 1;
+	planets[3].rotation_period = 0.01;
 	planets[3].orbit_period = 1.9;
 	planets[3].orbiting_objects = NULL;
+	planets[3].TiltingAngle = RotateY(20) * RotateZ(45);
 	// jupiter
 	planets[4].name = "Jupiter";
 	planets[4].average_orbit_distance = 20; //778341;
 	planets[4].equatorial_radius = 0.7; //69.9;
-	planets[4].rotation_period = 0.4;
+	planets[4].rotation_period = 0.04;
 	planets[4].orbit_period = 11.9;
+	planets[2].TiltingAngle = RotateY(45) * RotateZ(10);
 
 	// before
 	planets[4].num_orbiting_objects = 4;
@@ -228,77 +237,89 @@ void initAstronomicalObjects() {
 	satellites[0].name = "Ganymede";
 	satellites[0].average_orbit_distance = 1;
 	satellites[0].equatorial_radius = 0.3; //6.4;
-	satellites[0].rotation_period = 0.1;
+	satellites[0].rotation_period = 0.01;
 	satellites[0].orbit_period = 0.4;
+	satellites[0].TiltingAngle = RotateY(10) * RotateZ(12);
 	satellites[1].name = "Europa";
 	satellites[1].average_orbit_distance = 2;
 	satellites[1].equatorial_radius = 0.1; //6.4;
-	satellites[1].rotation_period = 0.1;
+	satellites[1].rotation_period = 0.01;
 	satellites[1].orbit_period = 0.5;
+	satellites[1].TiltingAngle = RotateY(12) * RotateZ(9);
 	satellites[2].name = "Io";
 	satellites[2].average_orbit_distance = 3;
 	satellites[2].equatorial_radius = 0.15; //6.4;
-	satellites[2].rotation_period = 0.1;
+	satellites[2].rotation_period = 0.01;
 	satellites[2].orbit_period = 0.3;
+	satellites[2].TiltingAngle = RotateY(50) * RotateZ(15);
 	satellites[3].name = "Callisto";
 	satellites[3].average_orbit_distance = 4;
 	satellites[3].equatorial_radius = 0.2; //6.4;
-	satellites[3].rotation_period = 0.1;
+	satellites[3].rotation_period = 0.01;
 	satellites[3].orbit_period = 0.5;
+	satellites[3].TiltingAngle = RotateY(20) * RotateZ(10);
 	// after
 	// saturn
 	planets[5].name = "Saturn";
 	planets[5].average_orbit_distance = 24; //1426666;
 	planets[5].equatorial_radius = 0.6; //58.2;
-	planets[5].rotation_period = 0.4;
+	planets[5].rotation_period = 0.04;
 	planets[5].orbit_period = 29.4;
 	planets[5].num_orbiting_objects = 2;
+	planets[5].TiltingAngle = RotateY(28) * RotateZ(7);
 	satellites = new AstronomicalObject[2];
 	planets[5].orbiting_objects = satellites;
 	satellites[0].name = "Titan";
 	satellites[0].average_orbit_distance = 1;
 	satellites[0].equatorial_radius = 0.25; //6.4;
-	satellites[0].rotation_period = 0.1;
+	satellites[0].rotation_period = 0.01;
 	satellites[0].orbit_period = 0.3;
+	satellites[2].TiltingAngle = RotateY(18) * RotateZ(17);
 	satellites[1].name = "Rhea";
 	satellites[1].average_orbit_distance = 2;
 	satellites[1].equatorial_radius = 0.1; //6.4;
-	satellites[1].rotation_period = 0.1;
+	satellites[1].rotation_period = 0.01;
 	satellites[1].orbit_period = 0.5;
+	satellites[1].TiltingAngle = RotateY(8) * RotateZ(17);
 
 	// uranus
 	planets[6].name = "Uranus";
 	planets[6].average_orbit_distance = 28; //2870658;
 	planets[6].equatorial_radius = 0.6; //25.4;
-	planets[6].rotation_period = -0.7;
+	planets[6].rotation_period = 0.07;
 	planets[6].orbit_period = 84;
 	planets[6].num_orbiting_objects = 2;
+	planets[6].TiltingAngle = RotateY(8) * RotateZ(27);
 	satellites = new AstronomicalObject[2];
 	planets[6].orbiting_objects = satellites;
 	satellites[0].name = "Titania";
 	satellites[0].average_orbit_distance = 1;
 	satellites[0].equatorial_radius = 0.1; //6.4;
-	satellites[0].rotation_period = 0.1;
+	satellites[0].rotation_period = 0.01;
 	satellites[0].orbit_period = 0.6;
+	satellites[0].TiltingAngle = RotateY(8) * RotateZ(7);
 	satellites[1].name = "Oberon";
 	satellites[1].average_orbit_distance = 2;
 	satellites[1].equatorial_radius = 0.1; //6.4;
-	satellites[1].rotation_period = 0.1;
+	satellites[1].rotation_period = 0.01;
 	satellites[1].orbit_period = 0.7;
+	satellites[1].TiltingAngle = RotateY(8) * RotateZ(7);
 	// neptune
 	planets[7].name = "Neptune";
 	planets[7].average_orbit_distance = 32; //4498396;
 	planets[7].equatorial_radius = 0.6; //24.6;
-	planets[7].rotation_period = 0.7;
+	planets[7].rotation_period = 0.07;
 	planets[7].orbit_period = 164.8;
 	planets[7].num_orbiting_objects = 1;
+	planets[7].TiltingAngle = RotateY(8) * RotateZ(7);
 	satellites = new AstronomicalObject[1];
 	planets[7].orbiting_objects = satellites;
 	satellites[0].name = "Triton";
 	satellites[0].average_orbit_distance = 1;
 	satellites[0].equatorial_radius = 0.1; //6.4;
-	satellites[0].rotation_period = 0.1;
+	satellites[0].rotation_period = 0.01;
 	satellites[0].orbit_period = 0.2;
+	satellites[0].TiltingAngle = RotateY(8) * RotateZ(7);
 }
 
 //----------------------------------------------------------------------------
@@ -373,7 +394,8 @@ void init() {
 void display(void) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	// sun
-	mat4 mv = view;
+	GLfloat YRotationAngle = sun.RotationTheta[Yaxis];
+	mat4 mv = view * sun.TiltingAngle * RotateY(YRotationAngle);
 	glUniformMatrix4fv(glGetUniformLocation(program, "ModelView"), 1, GL_TRUE,	mv);
 	glUniform1i(TextureFlag, 1);
 	glBindTexture(GL_TEXTURE_2D, sun.TexID);
@@ -382,9 +404,9 @@ void display(void) {
 	for (int i = 0; i < sun.num_orbiting_objects; i++) {
 		double t = sun.orbiting_objects[i].average_orbit_distance;
 		double s = sun.orbiting_objects[i].equatorial_radius / sun.equatorial_radius;
-		GLfloat YRotationAngle = sun.orbiting_objects[i].Theta[Yaxis];
-		//mat4 planet_model = RotateY(YRotationAngle) * Translate(t, 0, 0) * Scale(s, s, s);
-		mat4 planet_model = RotateY(YRotationAngle) * Translate(t, 0, 0);
+		GLfloat YRevolutionAngle = sun.orbiting_objects[i].RevolutionTheta[Yaxis];
+		YRotationAngle = sun.orbiting_objects[i].RotationTheta[Yaxis];
+		mat4 planet_model = RotateY(YRevolutionAngle) * Translate(t, 0, 0) * sun.orbiting_objects[i].TiltingAngle * RotateY(YRotationAngle);
 		glUniformMatrix4fv(glGetUniformLocation(program, "ModelView"), 1, GL_TRUE, view * planet_model * Scale(s, s, s));
 		glUniform1i(TextureFlag, 1);
 		glBindTexture(GL_TEXTURE_2D, sun.orbiting_objects[i].TexID);
@@ -397,8 +419,9 @@ void display(void) {
 				double t_s = satellite.average_orbit_distance;
 				// scale value respect to planet that stallite rotates around
 				double s_s = satellite.equatorial_radius / sun.orbiting_objects[i].equatorial_radius;
-				YRotationAngle = satellite.Theta[Yaxis];
-				mat4 satellite_model = planet_model * RotateY(YRotationAngle) * Translate(t_s, 0, 0);
+				YRevolutionAngle = satellite.RevolutionTheta[Yaxis];
+				YRotationAngle = satellite.RotationTheta[Yaxis];
+				mat4 satellite_model = planet_model * RotateY(YRevolutionAngle) * Translate(t_s, 0, 0) * satellite.TiltingAngle * RotateY(YRotationAngle);
 				//mat4 satellite_model = Translate(t_s, 0, 0) * Scale(s_s, s_s, s_s) * planet_model;
 				glUniformMatrix4fv(glGetUniformLocation(program, "ModelView"), 1, GL_TRUE, 
 						view * satellite_model * Scale(s_s, s_s, s_s));
@@ -422,32 +445,63 @@ void display(void) {
  */
 void idle(void) {
 	int i;
+	sun.RotationTheta[Axis] -= EARTH_REVOLUTION_ANGULAR_SPEED / sun.rotation_period;
+	if (sun.RotationTheta[Axis] > 360.0) {
+		sun.RotationTheta[Axis] -= 360.0;
+	}
+	if (sun.RotationTheta[Axis] < -360.0) {
+		sun.RotationTheta[Axis] += 360.0;
+	}
 	for (i = 0; i < NUM_OF_OBJECTS; i++) {
-		sun.orbiting_objects[i].Theta[Axis] -= EARTH_REVOLUTION_ANGULAR_SPEED / sun.orbiting_objects[i].orbit_period;
-		if (sun.orbiting_objects[i].Theta[Axis] > 360.0) {
-			sun.orbiting_objects[i].Theta[Axis] -= 360.0;
+		sun.orbiting_objects[i].RevolutionTheta[Axis] -= EARTH_REVOLUTION_ANGULAR_SPEED / sun.orbiting_objects[i].orbit_period;
+		if (sun.orbiting_objects[i].RevolutionTheta[Axis] > 360.0) {
+			sun.orbiting_objects[i].RevolutionTheta[Axis] -= 360.0;
 		}
 
-		if (sun.orbiting_objects[i].Theta[Axis] < -360.0) {
-			sun.orbiting_objects[i].Theta[Axis] += 360.0;
+		if (sun.orbiting_objects[i].RevolutionTheta[Axis] < -360.0) {
+			sun.orbiting_objects[i].RevolutionTheta[Axis] += 360.0;
 		}
+
+		sun.orbiting_objects[i].RotationTheta[Axis] -= EARTH_REVOLUTION_ANGULAR_SPEED / sun.orbiting_objects[i].rotation_period;
+		if (sun.orbiting_objects[i].RotationTheta[Axis] > 360.0) {
+			sun.orbiting_objects[i].RotationTheta[Axis] -= 360.0;
+		}
+
+		if (sun.orbiting_objects[i].RotationTheta[Axis] < -360.0) {
+			sun.orbiting_objects[i].RotationTheta[Axis] += 360.0;
+		}
+
 		if (sun.orbiting_objects[i].orbiting_objects) {
 			int j;
 			for (j = 0; j < sun.orbiting_objects[i].num_orbiting_objects; j++) {
 				//AstronomicalObject * satellite = &(sun.orbiting_objects[i].orbiting_objects[j]);
-				sun.orbiting_objects[i].orbiting_objects[j].Theta[Axis] -=
+				sun.orbiting_objects[i].orbiting_objects[j].RevolutionTheta[Axis] -=
 						EARTH_REVOLUTION_ANGULAR_SPEED
 								/ sun.orbiting_objects[i].orbiting_objects[j].orbit_period;
 				//printf("moon is set angular with angular speed %lf\n", sun.orbiting_objects[i].orbiting_objects[j].Theta[Axis]);
-				if (sun.orbiting_objects[i].orbiting_objects[j].Theta[Axis]
+				if (sun.orbiting_objects[i].orbiting_objects[j].RevolutionTheta[Axis]
 						> 360.0) {
-					sun.orbiting_objects[i].orbiting_objects[j].Theta[Axis] -=
+					sun.orbiting_objects[i].orbiting_objects[j].RevolutionTheta[Axis] -=
 							360.0;
 				}
 
-				if (sun.orbiting_objects[i].orbiting_objects[j].Theta[Axis]
+				if (sun.orbiting_objects[i].orbiting_objects[j].RevolutionTheta[Axis]
 						< -360.0) {
-					sun.orbiting_objects[i].orbiting_objects[j].Theta[Axis] +=
+					sun.orbiting_objects[i].orbiting_objects[j].RevolutionTheta[Axis] +=
+							360.0;
+				}
+				sun.orbiting_objects[i].orbiting_objects[j].RotationTheta[Axis] -=
+						EARTH_REVOLUTION_ANGULAR_SPEED
+								/ sun.orbiting_objects[i].orbiting_objects[j].rotation_period;
+				if (sun.orbiting_objects[i].orbiting_objects[j].RotationTheta[Axis]
+						> 360.0) {
+					sun.orbiting_objects[i].orbiting_objects[j].RotationTheta[Axis] -=
+							360.0;
+				}
+
+				if (sun.orbiting_objects[i].orbiting_objects[j].RotationTheta[Axis]
+						< -360.0) {
+					sun.orbiting_objects[i].orbiting_objects[j].RotationTheta[Axis] +=
 							360.0;
 				}
 			}
@@ -486,6 +540,8 @@ void keyboard(unsigned char key, int x, int y) {
 		cout << "s -- move camera backward" << endl;
 		cout << "a -- move camera left" << endl;
 		cout << "d -- move camera right" << endl;
+		cout << "f -- increase speed of simulation" << endl;
+		cout << "v -- reduce speed of simulation" << endl;
 		cout << "up -- rotate camera clockwise around x axis" << endl;
 		cout << "down -- rotate camera counter-clockwise around x axis" << endl;
 		cout << "left -- rotate camera counter-clockwise around y axis" << endl;
@@ -509,6 +565,12 @@ void keyboard(unsigned char key, int x, int y) {
 	case 'd':
 		camera_translate = Translate(-1,0,0) * camera_translate;
 		computeView();
+		break;
+	case 'f':
+		EARTH_REVOLUTION_ANGULAR_SPEED *= 2;
+		break;
+	case 'v':
+		EARTH_REVOLUTION_ANGULAR_SPEED /= 2;
 		break;
 	case 'q':
 	case 'Q':
@@ -564,8 +626,8 @@ void mouse(int button, int state, int x, int y) {
 			double s = sun.orbiting_objects[i].equatorial_radius / sun.equatorial_radius;
 			red_val += 0.05;
 			glUniform4f(Color, red_val, 0.0, 0.0, 1.0);
-			GLfloat YRotationAngle = sun.orbiting_objects[i].Theta[Yaxis];
-			mat4 planet_model = RotateY(YRotationAngle) * Translate(t, 0, 0);
+			GLfloat YRevolutionAngle = sun.orbiting_objects[i].RevolutionTheta[Yaxis];
+			mat4 planet_model = RotateY(YRevolutionAngle) * Translate(t, 0, 0);
 			glUniformMatrix4fv(glGetUniformLocation(program, "ModelView"), 1, GL_TRUE, view * planet_model * Scale(s, s, s));
 			glDrawArrays(GL_TRIANGLES, 0, NumVerticesSphere);
 			// after
@@ -583,8 +645,8 @@ void mouse(int button, int state, int x, int y) {
 					double s_s = satellite.equatorial_radius / sun.orbiting_objects[i].equatorial_radius;
 					red_val += 0.05;
 					glUniform4f(Color, red_val, 0.0, 0.0, 1.0);
-					YRotationAngle = satellite.Theta[Yaxis];
-					mat4 satellite_model = planet_model * RotateY(YRotationAngle) * Translate(t_s, 0, 0);
+					YRevolutionAngle = satellite.RevolutionTheta[Yaxis];
+					mat4 satellite_model = planet_model * RotateY(YRevolutionAngle) * Translate(t_s, 0, 0);
 					//mat4 satellite_model = Translate(t_s, 0, 0) * Scale(s_s, s_s, s_s) * planet_model;
 					glUniformMatrix4fv(glGetUniformLocation(program, "ModelView"), 1, GL_TRUE, 
 						view * satellite_model * Scale(s_s, s_s, s_s));
