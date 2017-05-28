@@ -217,16 +217,16 @@ void initAstronomicalObjects() {
 	planets[0].name = "Mercury";
 	planets[0].average_orbit_distance = 4;	//57909;
 	planets[0].equatorial_radius = 0.2; //2.4;
-	planets[0].rotation_period = 0.02;
-	planets[0].orbit_period = 0.2;
+	planets[0].rotation_period = 0.16; // 58.6 days
+	planets[0].orbit_period = 0.24; // 88 days
 	planets[0].orbiting_objects = NULL;
 	planets[0].TiltingAngle = RotateY(5) * RotateZ(10);
 	// venus
 	planets[1].name = "Venus";
 	planets[1].average_orbit_distance = 8; //108209;
 	planets[1].equatorial_radius = 0.4; //6.1;
-	planets[1].rotation_period = 0.2;
-	planets[1].orbit_period = 0.6;
+	planets[1].rotation_period = 0.66; // 241 days 
+	planets[1].orbit_period = 0.6; // 225 days
 	planets[1].orbiting_objects = NULL;
 	planets[1].TiltingAngle = RotateY(5) * RotateZ(8);
 	// earth
@@ -242,23 +242,23 @@ void initAstronomicalObjects() {
 	satellites[0].name = "Moon";
 	satellites[0].average_orbit_distance = 2;
 	satellites[0].equatorial_radius = 0.1; //6.4;
-	satellites[0].rotation_period = 0.01;
-	satellites[0].orbit_period = 0.1;
+	satellites[0].rotation_period = 0.08; // 30 days
+	satellites[0].orbit_period = 0.08; // 30 days
 	satellites[2].TiltingAngle = RotateY(20) * RotateZ(7);
 	// mars
 	planets[3].name = "Mars";
 	planets[3].average_orbit_distance = 16; //227944;
 	planets[3].equatorial_radius = 0.4; //3.4;
-	planets[3].rotation_period = 0.01;
-	planets[3].orbit_period = 1.9;
+	planets[3].rotation_period = 0.003; // 1 day
+	planets[3].orbit_period = 2; // 687 days
 	planets[3].orbiting_objects = NULL;
 	planets[3].TiltingAngle = RotateY(20) * RotateZ(45);
 	// jupiter
 	planets[4].name = "Jupiter";
 	planets[4].average_orbit_distance = 20; //778341;
 	planets[4].equatorial_radius = 0.7; //69.9;
-	planets[4].rotation_period = 0.04;
-	planets[4].orbit_period = 11.9;
+	planets[4].rotation_period = 0.001; // 10 hours
+	planets[4].orbit_period = 11.9; // 12 years
 	planets[2].TiltingAngle = RotateY(45) * RotateZ(10);
 
 	// before
@@ -266,36 +266,36 @@ void initAstronomicalObjects() {
 	satellites = new AstronomicalObject[4];
 	planets[4].orbiting_objects = satellites;
 	satellites[0].name = "Ganymede";
-	satellites[0].average_orbit_distance = 1;
-	satellites[0].equatorial_radius = 0.3; //6.4;
+	satellites[0].average_orbit_distance = 1.5;
+	satellites[0].equatorial_radius = 0.2; //6.4;
 	satellites[0].rotation_period = 0.01;
-	satellites[0].orbit_period = 0.4;
+	satellites[0].orbit_period = 0.019; // 7 days
 	satellites[0].TiltingAngle = RotateY(10) * RotateZ(12);
 	satellites[1].name = "Europa";
-	satellites[1].average_orbit_distance = 2;
+	satellites[1].average_orbit_distance = 2.3;
 	satellites[1].equatorial_radius = 0.1; //6.4;
 	satellites[1].rotation_period = 0.01;
-	satellites[1].orbit_period = 0.5;
+	satellites[1].orbit_period = 0.008; // 3 days
 	satellites[1].TiltingAngle = RotateY(12) * RotateZ(9);
 	satellites[2].name = "Io";
 	satellites[2].average_orbit_distance = 3;
 	satellites[2].equatorial_radius = 0.15; //6.4;
 	satellites[2].rotation_period = 0.01;
-	satellites[2].orbit_period = 0.3;
+	satellites[2].orbit_period = 0.005; // 2 days
 	satellites[2].TiltingAngle = RotateY(50) * RotateZ(15);
 	satellites[3].name = "Callisto";
 	satellites[3].average_orbit_distance = 4;
-	satellites[3].equatorial_radius = 0.2; //6.4;
+	satellites[3].equatorial_radius = 0.17; //6.4;
 	satellites[3].rotation_period = 0.01;
-	satellites[3].orbit_period = 0.5;
+	satellites[3].orbit_period = 0.05; // 17 days
 	satellites[3].TiltingAngle = RotateY(20) * RotateZ(10);
 	// after
 	// saturn
 	planets[5].name = "Saturn";
 	planets[5].average_orbit_distance = 24; //1426666;
 	planets[5].equatorial_radius = 0.6; //58.2;
-	planets[5].rotation_period = 0.04;
-	planets[5].orbit_period = 29.4;
+	planets[5].rotation_period = 0.001; // 10 hours
+	planets[5].orbit_period = 29.4; // 30 years
 	planets[5].num_orbiting_objects = 2;
 	planets[5].orbiting_objects = NULL;
 	planets[5].TiltingAngle = RotateY(28) * RotateZ(7);
@@ -318,8 +318,8 @@ void initAstronomicalObjects() {
 	planets[6].name = "Uranus";
 	planets[6].average_orbit_distance = 28; //2870658;
 	planets[6].equatorial_radius = 0.6; //25.4;
-	planets[6].rotation_period = 0.07;
-	planets[6].orbit_period = 84;
+	planets[6].rotation_period = 0.001; // 17 hours
+	planets[6].orbit_period = 84; // 
 	planets[6].num_orbiting_objects = 2;
 	planets[6].TiltingAngle = RotateY(8) * RotateZ(27);
 	planets[6].orbiting_objects = NULL;
@@ -342,8 +342,8 @@ void initAstronomicalObjects() {
 	planets[7].name = "Neptune";
 	planets[7].average_orbit_distance = 32; //4498396;
 	planets[7].equatorial_radius = 0.6; //24.6;
-	planets[7].rotation_period = 0.07;
-	planets[7].orbit_period = 164.8;
+	planets[7].rotation_period = 0.001; // 19 hours
+	planets[7].orbit_period = 164.8; 
 	planets[7].num_orbiting_objects = 1;
 	planets[7].TiltingAngle = RotateY(8) * RotateZ(7);
 	planets[7].orbiting_objects = NULL;
