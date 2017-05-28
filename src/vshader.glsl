@@ -7,10 +7,13 @@ in vec2 vTexCoords;
 out vec2 texCoord;
 
 uniform mat4 Projection;
-uniform mat4 ModelView;
+uniform mat4 ModelMatrix;
+uniform mat4 ViewMatrix;
 
 uniform vec4 LightPosition;
 
+varying vec4 pos;
+varying vec3 normal;
 varying  vec3 fN;
 varying  vec3 fV;
 varying  vec3 fL;
@@ -23,13 +26,9 @@ void main()
    //Shading = 0;
    if(Shading == 1) {
     // Phong shading
-	
-    fN = (ModelView*vec4(vNormal, 0.0)).xyz; // normal direction in camera coordinates
-
-    fV = (ModelView * vPosition).xyz; //viewer direction in camera coordinates
-
-    fL = LightPosition.xyz - fV;
+    pos = ModelMatrix * vPosition;
+    normal = vNormal;
     }
    texCoord = vTexCoords;
-   gl_Position = Projection * ModelView * vPosition;		
+   gl_Position = Projection*ViewMatrix*ModelMatrix*vPosition;		
 } 

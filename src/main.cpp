@@ -73,7 +73,7 @@ GLuint AmbientProduct, DiffuseProduct, SpecularProduct, LightPosition;
  
 GLfloat Shininess;
 
-GLuint ModelView;
+GLuint ModelMatrix;
 GLuint Shading_mode;
 
 // for the first point light source
@@ -417,7 +417,7 @@ void init() {
 	Color = glGetUniformLocation(program, "color");
 
 	// before
-	float  material_shininess = 150.0;
+	float  material_shininess = 100.0;
 
     	ambient_product = light_ambient * material_ambient; // k_a * L_a
     	diffuse_product = light_diffuse * material_diffuse; // k_d * L_d
@@ -455,8 +455,9 @@ void display(void) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	// sun
 	GLfloat YRotationAngle = sun.RotationTheta[Yaxis];
-	mat4 mv = view * sun.TiltingAngle * RotateY(YRotationAngle);
-	glUniformMatrix4fv(glGetUniformLocation(program, "ModelView"), 1, GL_TRUE,	mv);
+	glUniformMatrix4fv(glGetUniformLocation(program, "ViewMatrix"), 1, GL_TRUE,	view);
+	mat4 mv = sun.TiltingAngle * RotateY(YRotationAngle);
+	glUniformMatrix4fv(glGetUniformLocation(program, "ModelMatrix"), 1, GL_TRUE,	mv);
 	glUniform1i(TextureFlag, 1);
 	glBindTexture(GL_TEXTURE_2D, sun.TexID);
 	glUniform1i(Shading_mode , 0 );
@@ -469,7 +470,7 @@ void display(void) {
 		GLfloat YRevolutionAngle = sun.orbiting_objects[i].RevolutionTheta[Yaxis];
 		YRotationAngle = sun.orbiting_objects[i].RotationTheta[Yaxis];
 		mat4 planet_model = RotateY(YRevolutionAngle) * Translate(t, 0, 0) * sun.orbiting_objects[i].TiltingAngle * RotateY(YRotationAngle);
-		glUniformMatrix4fv(glGetUniformLocation(program, "ModelView"), 1, GL_TRUE, view * planet_model * Scale(s, s, s));
+		glUniformMatrix4fv(glGetUniformLocation(program, "ModelMatrix"), 1, GL_TRUE, planet_model * Scale(s, s, s));
 		glUniform1i(TextureFlag, 1);
 		glBindTexture(GL_TEXTURE_2D, sun.orbiting_objects[i].TexID);
 		glDrawArrays(GL_TRIANGLES, 0, NumVerticesSphere);
@@ -485,8 +486,8 @@ void display(void) {
 				YRotationAngle = satellite.RotationTheta[Yaxis];
 				mat4 satellite_model = planet_model * RotateY(YRevolutionAngle) * Translate(t_s, 0, 0) * satellite.TiltingAngle * RotateY(YRotationAngle);
 				//mat4 satellite_model = Translate(t_s, 0, 0) * Scale(s_s, s_s, s_s) * planet_model;
-				glUniformMatrix4fv(glGetUniformLocation(program, "ModelView"), 1, GL_TRUE, 
-						view * satellite_model * Scale(s_s, s_s, s_s));
+				glUniformMatrix4fv(glGetUniformLocation(program, "ModelMatrix"), 1, GL_TRUE, 
+						satellite_model * Scale(s_s, s_s, s_s));
 				//glDrawArrays(GL_TRIANGLES, 0, NumVerticesSphere);
 				if (planets[i].orbiting_objects[j].TexID > 0)
 				  {glBindTexture(GL_TEXTURE_2D, planets[i].orbiting_objects[j].TexID);}
@@ -676,8 +677,9 @@ void mouse(int button, int state, int x, int y) {
 		double red_val = 0.05;
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glUniform4f(Color, red_val, 0.0, 0.0, 1.0);
-		mat4 mv = view;
-		glUniformMatrix4fv(glGetUniformLocation(program, "ModelView"), 1, GL_TRUE,	mv);
+		mat4 mv = identity();
+		glUniformMatrix4fv(glGetUniformLocation(program, "ModelMatrix"), 1, GL_TRUE,	mv);
+		glUniformMatrix4fv(glGetUniformLocation(program, "ViewMatrix"), 1, GL_TRUE,	view);
 		glDrawArrays(GL_TRIANGLES, 0, NumVerticesSphere);
 		// end
 
@@ -690,7 +692,7 @@ void mouse(int button, int state, int x, int y) {
 			glUniform4f(Color, red_val, 0.0, 0.0, 1.0);
 			GLfloat YRevolutionAngle = sun.orbiting_objects[i].RevolutionTheta[Yaxis];
 			mat4 planet_model = RotateY(YRevolutionAngle) * Translate(t, 0, 0);
-			glUniformMatrix4fv(glGetUniformLocation(program, "ModelView"), 1, GL_TRUE, view * planet_model * Scale(s, s, s));
+			glUniformMatrix4fv(glGetUniformLocation(program, "ModelMatrix"), 1, GL_TRUE, planet_model * Scale(s, s, s));
 			glDrawArrays(GL_TRIANGLES, 0, NumVerticesSphere);
 			// after
 
@@ -710,8 +712,8 @@ void mouse(int button, int state, int x, int y) {
 					YRevolutionAngle = satellite.RevolutionTheta[Yaxis];
 					mat4 satellite_model = planet_model * RotateY(YRevolutionAngle) * Translate(t_s, 0, 0);
 					//mat4 satellite_model = Translate(t_s, 0, 0) * Scale(s_s, s_s, s_s) * planet_model;
-					glUniformMatrix4fv(glGetUniformLocation(program, "ModelView"), 1, GL_TRUE, 
-						view * satellite_model * Scale(s_s, s_s, s_s));
+					glUniformMatrix4fv(glGetUniformLocation(program, "ModelMatrix"), 1, GL_TRUE, 
+						satellite_model * Scale(s_s, s_s, s_s));
 					glDrawArrays(GL_TRIANGLES, 0, NumVerticesSphere);
 					// end
 				}
