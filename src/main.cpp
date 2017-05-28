@@ -42,7 +42,6 @@ public:
 	double orbit_period;					// in earth years
 	AstronomicalObject* orbiting_objects;// for example Earth and other planets orbit Sun.
 	int num_orbiting_objects;
-	mat4 object_model_view;
 	mat4 TiltingAngle;
 	GLfloat RevolutionTheta[NumAxes];
 	GLfloat RotationTheta[NumAxes];
