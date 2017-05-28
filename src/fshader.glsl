@@ -54,7 +54,7 @@ void main()
 
 			// first point light source
         		vec3 L = normalize(fL);
-			float a = 0.01;
+			float a = 1.0;
 			float b = 0.01;
 			float c = 0.01;
 			float light_distance = length(fL);
