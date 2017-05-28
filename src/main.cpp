@@ -152,11 +152,11 @@ void triangle(const point4& a, const point4& b, const point4& c) {
 	Index_s++;
 	sphereNormals[Index_s] = normal;
 	spherePoints[Index_s] = b;
-	texCoords[Index_s] = CalcTextureCoordinates(a);
+	texCoords[Index_s] = CalcTextureCoordinates(b);
 	Index_s++;
 	sphereNormals[Index_s] = normal;
 	spherePoints[Index_s] = c;
-	texCoords[Index_s] = CalcTextureCoordinates(a);
+	texCoords[Index_s] = CalcTextureCoordinates(c);
 	Index_s++;
 }
 
