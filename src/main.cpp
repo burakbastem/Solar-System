@@ -469,8 +469,8 @@ void display(void) {
 		double s = sun.orbiting_objects[i].equatorial_radius / sun.equatorial_radius;
 		GLfloat YRevolutionAngle = sun.orbiting_objects[i].RevolutionTheta[Yaxis];
 		YRotationAngle = sun.orbiting_objects[i].RotationTheta[Yaxis];
-		mat4 planet_model = RotateY(YRevolutionAngle) * Translate(t, 0, 0) * sun.orbiting_objects[i].TiltingAngle * RotateY(YRotationAngle);
-		glUniformMatrix4fv(glGetUniformLocation(program, "ModelMatrix"), 1, GL_TRUE, planet_model * Scale(s, s, s));
+		mat4 planet_model = RotateY(YRevolutionAngle) * Translate(t, 0, 0);
+		glUniformMatrix4fv(glGetUniformLocation(program, "ModelMatrix"), 1, GL_TRUE, planet_model * sun.orbiting_objects[i].TiltingAngle * RotateY(YRotationAngle) * Scale(s, s, s));
 		glUniform1i(TextureFlag, 1);
 		glBindTexture(GL_TEXTURE_2D, sun.orbiting_objects[i].TexID);
 		glDrawArrays(GL_TRIANGLES, 0, NumVerticesSphere);
@@ -692,6 +692,7 @@ void mouse(int button, int state, int x, int y) {
 			glUniform4f(Color, red_val, 0.0, 0.0, 1.0);
 			GLfloat YRevolutionAngle = sun.orbiting_objects[i].RevolutionTheta[Yaxis];
 			mat4 planet_model = RotateY(YRevolutionAngle) * Translate(t, 0, 0);
+			glUniformMatrix4fv(glGetUniformLocation(program, "ModelMatrix"), 1, GL_TRUE, planet_model * sun.orbiting_objects[i].TiltingAngle * Scale(s, s, s));
 			glUniformMatrix4fv(glGetUniformLocation(program, "ModelMatrix"), 1, GL_TRUE, planet_model * Scale(s, s, s));
 			glDrawArrays(GL_TRIANGLES, 0, NumVerticesSphere);
 			// after
