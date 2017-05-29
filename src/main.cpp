@@ -629,6 +629,14 @@ void keyboard(unsigned char key, int x, int y) {
 		camera_translate = Translate(-1,0,0) * camera_translate;
 		computeView();
 		break;
+	case 'u':
+		camera_translate = Translate(0,-1,0) * camera_translate;
+		computeView();
+		break;
+	case 'j':
+		camera_translate = Translate(0,1,0) * camera_translate;
+		computeView();
+		break;
 	case 'f':
 		EARTH_REVOLUTION_ANGULAR_SPEED *= 2;
 		break;
