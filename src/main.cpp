@@ -758,19 +758,9 @@ void mouse(int button, int state, int x, int y) {
 		} else if (pixel[0] == 153 && pixel[1] == 0 && pixel[2] == 0) {
 			std::cout << "Saturn" << std::endl;
 		} else if (pixel[0] == 166 && pixel[1] == 0 && pixel[2] == 0) {
-			std::cout << "Titan" << std::endl;
-		} else if (pixel[0] == 178 && pixel[1] == 0 && pixel[2] == 0) {
-			std::cout << "Rhea" << std::endl;
-		} else if (pixel[0] == 191 && pixel[1] == 0 && pixel[2] == 0) {
 			std::cout << "Uranus" << std::endl;
-		} else if (pixel[0] == 204 && pixel[1] == 0 && pixel[2] == 0) {
-			std::cout << "Titania" << std::endl;
-		} else if (pixel[0] == 217 && pixel[1] == 0 && pixel[2] == 0) {
-			std::cout << "Oberon" << std::endl;
-		} else if (pixel[0] == 229 && pixel[1] == 0 && pixel[2] == 0) {
+		} else if (pixel[0] == 178 && pixel[1] == 0 && pixel[2] == 0) {
 			std::cout << "Neptune" << std::endl;
-		} else if (pixel[0] == 242 && pixel[1] == 0 && pixel[2] == 0) {
-			std::cout << "Triton" << std::endl;
 		} else {
 			std::cout << "None" << std::endl;
 		}
